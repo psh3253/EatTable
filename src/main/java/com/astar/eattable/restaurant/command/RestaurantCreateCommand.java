@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @NoArgsConstructor
@@ -18,6 +20,10 @@ public class RestaurantCreateCommand {
     @NotNull
     @Size(min = 2, max = 50, message = "식당 이름은 2자 이상 50자 이하로 입력해주세요.")
     private String name;
+
+    @NotNull
+    @Size(min = 2, max = 500, message = "식당 설명은 2자 이상 500자 이하로 입력해주세요.")
+    private String description;
 
     @NotNull
     @Size(min = 2, max = 100, message = "식당 주소는 2자 이상 100자 이하로 입력해주세요.")
@@ -35,6 +41,9 @@ public class RestaurantCreateCommand {
     private String categoryName;
 
     @NotNull
+    private List<BusinessHoursCommand> businessHours;
+
+    @NotNull
     private Double latitude;
 
     @NotNull
@@ -44,6 +53,7 @@ public class RestaurantCreateCommand {
         return Restaurant.builder()
                 .name(name)
                 .address(address)
+                .description(description)
                 .phone(phone)
                 .imageUrl(imageUrl)
                 .categoryName(categoryName)

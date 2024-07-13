@@ -1,6 +1,6 @@
 package com.astar.eattable.restaurant.dto;
 
-import com.astar.eattable.restaurant.document.RestaurantDocument;
+import com.astar.eattable.restaurant.document.RestaurantListDocument;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
@@ -17,14 +17,14 @@ public class RestaurantListDto {
     private Double reviewScore;
     private Long reviewCount;
 
-    public RestaurantListDto(RestaurantDocument restaurantDocument) {
-        this.id = restaurantDocument.getId();
-        this.name = restaurantDocument.getName();
-        this.imageUrl = restaurantDocument.getImageUrl();
-        this.categoryName = restaurantDocument.getCategoryName();
-        this.phone = restaurantDocument.getPhone();
-        this.address = restaurantDocument.getAddress();
-        this.reviewScore = restaurantDocument.getReviewScore();
-        this.reviewCount = restaurantDocument.getReviewCount();
+    public RestaurantListDto(RestaurantListDocument restaurantListDocument) {
+        this.id = restaurantListDocument.getId();
+        this.name = restaurantListDocument.getName();
+        this.imageUrl = restaurantListDocument.getImageUrl();
+        this.categoryName = restaurantListDocument.getCategoryName();
+        this.phone = restaurantListDocument.getPhone();
+        this.address = restaurantListDocument.getAddress();
+        this.reviewScore = restaurantListDocument.getReviewScore();
+        this.reviewCount = restaurantListDocument.getReviewCount();
     }
 }

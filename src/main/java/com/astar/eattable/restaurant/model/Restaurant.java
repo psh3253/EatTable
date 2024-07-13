@@ -27,6 +27,10 @@ public class Restaurant extends BaseTimeEntity {
     private String name;
 
     @NotNull
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @NotNull
     private String imageUrl;
 
     @NotNull
@@ -54,9 +58,10 @@ public class Restaurant extends BaseTimeEntity {
     private LocalDateTime deletedAt;
 
     @Builder
-    public Restaurant(Long id, String name, String imageUrl, String categoryName, String phone, String address, Double latitude, Double longitude, User createdBy) {
+    public Restaurant(Long id, String name, String description, String imageUrl, String categoryName, String phone, String address, Double latitude, Double longitude, User createdBy) {
         this.id = id;
         this.name = name;
+        this.description = description;
         this.imageUrl = imageUrl;
         this.categoryName = categoryName;
         this.phone = phone;

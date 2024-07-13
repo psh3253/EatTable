@@ -13,8 +13,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Document(collection = "restaurants")
-public class RestaurantDocument {
+@Document(collection = "restaurant_list")
+public class RestaurantListDocument {
     @Id
     private Long id;
     private String name;
@@ -29,7 +29,7 @@ public class RestaurantDocument {
     private Double reviewScore;
     private Long reviewCount;
 
-    public RestaurantDocument(Restaurant restaurant, Double reviewScore, Long reviewCount) {
+    public RestaurantListDocument(Restaurant restaurant, Double reviewScore, Long reviewCount) {
         this.id = restaurant.getId();
         this.name = restaurant.getName();
         this.imageUrl = restaurant.getImageUrl();

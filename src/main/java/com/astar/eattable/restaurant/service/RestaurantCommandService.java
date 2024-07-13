@@ -8,6 +8,7 @@ import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
 import com.astar.eattable.restaurant.exception.UnauthorizedRestaurantAccessException;
 import com.astar.eattable.restaurant.model.Restaurant;
 import com.astar.eattable.restaurant.model.RestaurantEvent;
+import com.astar.eattable.restaurant.repository.BusinessHoursRepository;
 import com.astar.eattable.restaurant.repository.RestaurantEventRepository;
 import com.astar.eattable.restaurant.repository.RestaurantRepository;
 import com.astar.eattable.user.model.User;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class RestaurantCommandService {
     private final RestaurantRepository restaurantRepository;
+    private final BusinessHoursRepository businessHoursRepository;
     private final RestaurantEventRepository restaurantEventRepository;
     private final ObjectMapper objectMapper;
 
@@ -30,6 +32,10 @@ public class RestaurantCommandService {
             throw new RestaurantAlreadyExistsException(command.getName(), command.getAddress());
         }
         Restaurant restaurant = restaurantRepository.save(command.toEntity(currentUser));
+        command.getBusinessHours().forEach(businessHours -> {
+            businessHoursRepository.save(businessHours.toEntity(restaurant));
+        });
+
         RestaurantEvent restaurantEvent = RestaurantEvent.from(restaurant.getId(), EventTypes.RESTAURANT_CREATED, objectMapper.writeValueAsString(command));
         restaurantEventRepository.save(restaurantEvent);
         return restaurant.getId();

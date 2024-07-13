@@ -1,6 +1,6 @@
 package com.astar.eattable.restaurant.service;
 
-import com.astar.eattable.restaurant.document.RestaurantDocument;
+import com.astar.eattable.restaurant.document.RestaurantListDocument;
 import com.astar.eattable.restaurant.dto.RestaurantListDto;
 import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
 import com.astar.eattable.restaurant.model.Restaurant;
@@ -30,7 +30,7 @@ public class RestaurantQueryService {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
         Double avgScore = Optional.ofNullable(reviewRepository.getAvgScoreByRestaurantId(restaurantId)).orElse(0.0);
         Long reviewCount = reviewRepository.countByRestaurantId(restaurantId);
-        restaurantMongoRepository.save(new RestaurantDocument(restaurant, avgScore, reviewCount));
+        restaurantMongoRepository.save(new RestaurantListDocument(restaurant, avgScore, reviewCount));
     }
 
     public void deleteRestaurant(Long restaurantId) {
@@ -38,14 +38,14 @@ public class RestaurantQueryService {
     }
 
     public List<RestaurantListDto> getNearbyRestaurants(double longitude, double latitude) {
-        List<RestaurantDocument> restaurantDocuments = restaurantMongoRepository.findByLocationNear(longitude, latitude, searchRadiusKm * 1000);
-        return restaurantDocuments.stream().map(RestaurantListDto::new).toList();
+        List<RestaurantListDocument> restaurantListDocuments = restaurantMongoRepository.findByLocationNear(longitude, latitude, searchRadiusKm * 1000);
+        return restaurantListDocuments.stream().map(RestaurantListDto::new).toList();
     }
 
     public void updateRestaurant(Long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
-        RestaurantDocument restaurantDocument = restaurantMongoRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
-        restaurantDocument.updateRestaurant(restaurant);
-        restaurantMongoRepository.save(restaurantDocument);
+        RestaurantListDocument restaurantListDocument = restaurantMongoRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
+        restaurantListDocument.updateRestaurant(restaurant);
+        restaurantMongoRepository.save(restaurantListDocument);
     }
 }
