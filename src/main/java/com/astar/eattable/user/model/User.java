@@ -36,10 +36,10 @@ public class User extends BaseTimeEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    private Role role = Role.ROLE_USER;
+    private final Role role = Role.ROLE_USER;
 
     @NotNull
-    private Boolean deleted = false;
+    private final Boolean deleted = false;
 
     private LocalDateTime deletedAt;
 

@@ -35,6 +35,8 @@ public class RestaurantEventListener {
             case EventTypes.RESTAURANT_UPDATED:
                 restaurantQueryService.updateRestaurant(message.getRestaurantId());
                 break;
+            case EventTypes.BUSINESS_HOURS_UPDATED:
+                restaurantQueryService.updateBusinessHours(message.getRestaurantId());
         }
     }
 }

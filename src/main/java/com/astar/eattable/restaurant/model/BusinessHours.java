@@ -1,5 +1,6 @@
 package com.astar.eattable.restaurant.model;
 
+import com.astar.eattable.restaurant.command.BusinessHoursCommand;
 import com.astar.eattable.restaurant.dto.Day;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -44,5 +45,13 @@ public class BusinessHours {
         this.breakStartTime = breakStartTime;
         this.breakEndTime = breakEndTime;
         this.lastOrderTime = lastOrderTime;
+    }
+
+    public void update(BusinessHoursCommand command) {
+        this.startTime = LocalTime.parse(command.getStartTime());
+        this.endTime = LocalTime.parse(command.getEndTime());
+        this.breakStartTime = command.getBreakStartTime() != null ? LocalTime.parse(command.getBreakStartTime()) : null;
+        this.breakEndTime = command.getBreakEndTime() != null ? LocalTime.parse(command.getBreakEndTime()) : null;
+        this.lastOrderTime = command.getLastOrderTime() != null ? LocalTime.parse(command.getLastOrderTime()) : null;
     }
 }

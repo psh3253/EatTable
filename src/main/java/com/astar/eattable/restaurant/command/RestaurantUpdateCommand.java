@@ -15,6 +15,9 @@ public class RestaurantUpdateCommand {
     @Size(min = 2, max = 50, message = "식당 이름은 2자 이상 50자 이하로 입력해주세요.")
     private String name;
 
+    @Size(min = 2, max = 500, message = "식당 설명은 2자 이상 500자 이하로 입력해주세요.")
+    private String description;
+
     @Size(min = 2, max = 100, message = "식당 주소는 2자 이상 100자 이하로 입력해주세요.")
     private String address;
 

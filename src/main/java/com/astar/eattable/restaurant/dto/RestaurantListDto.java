@@ -8,14 +8,14 @@ import lombok.Getter;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Getter
 public class RestaurantListDto {
-    private Long id;
-    private String name;
-    private String imageUrl;
-    private String categoryName;
-    private String phone;
-    private String address;
-    private Double reviewScore;
-    private Long reviewCount;
+    private final Long id;
+    private final String name;
+    private final String imageUrl;
+    private final String categoryName;
+    private final String phone;
+    private final String address;
+    private final Double reviewScore;
+    private final Long reviewCount;
 
     public RestaurantListDto(RestaurantListDocument restaurantListDocument) {
         this.id = restaurantListDocument.getId();

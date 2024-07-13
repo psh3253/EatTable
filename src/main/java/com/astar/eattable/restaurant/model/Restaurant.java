@@ -53,7 +53,7 @@ public class Restaurant extends BaseTimeEntity {
     private User createdBy;
 
     @NotNull
-    private Boolean deleted = false;
+    private final Boolean deleted = false;
 
     private LocalDateTime deletedAt;
 

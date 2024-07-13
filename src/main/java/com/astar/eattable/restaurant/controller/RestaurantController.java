@@ -1,5 +1,6 @@
 package com.astar.eattable.restaurant.controller;
 
+import com.astar.eattable.restaurant.command.BusinessHoursUpdateCommand;
 import com.astar.eattable.restaurant.command.RestaurantCreateCommand;
 import com.astar.eattable.restaurant.command.RestaurantUpdateCommand;
 import com.astar.eattable.restaurant.dto.RestaurantListDto;
@@ -42,5 +43,10 @@ public class RestaurantController {
     @PutMapping("/{restaurantId}")
     public void updateRestaurant(@PathVariable Long restaurantId, @Valid @RequestBody RestaurantUpdateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
         restaurantCommandService.updateRestaurant(restaurantId, command, currentUser);
+    }
+
+    @PutMapping("/{restaurantId}/business-hours")
+    public void updateBusinessHours(@PathVariable Long restaurantId, @Valid @RequestBody BusinessHoursUpdateCommand command, @CurrentUser User currentUser) {
+        restaurantCommandService.updateBusinessHours(restaurantId, command, currentUser);
     }
 }
