@@ -37,6 +37,12 @@ public class RestaurantEventListener {
                 break;
             case EventTypes.BUSINESS_HOURS_UPDATED:
                 restaurantQueryService.updateBusinessHours(message.getRestaurantId());
+                break;
+            case EventTypes.MENU_SECTION_CREATED:
+            case EventTypes.MENU_SECTION_DELETED:
+            case EventTypes.MENU_SECTION_UPDATED:
+                restaurantQueryService.updateMenu(message.getRestaurantId());
+                break;
         }
     }
 }

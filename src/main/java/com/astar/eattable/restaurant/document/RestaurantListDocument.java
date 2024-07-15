@@ -26,10 +26,10 @@ public class RestaurantListDocument {
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
     private GeoJsonPoint location;
 
-    private Double reviewScore;
-    private Long reviewCount;
+    private Double reviewScore = 0.0;
+    private Long reviewCount = 0L;
 
-    public RestaurantListDocument(Restaurant restaurant, Double reviewScore, Long reviewCount) {
+    public RestaurantListDocument(Restaurant restaurant) {
         this.id = restaurant.getId();
         this.name = restaurant.getName();
         this.imageUrl = restaurant.getImageUrl();
@@ -37,8 +37,6 @@ public class RestaurantListDocument {
         this.phone = restaurant.getPhone();
         this.address = restaurant.getAddress();
         this.location = new GeoJsonPoint(restaurant.getLongitude(), restaurant.getLatitude());
-        this.reviewScore = reviewScore;
-        this.reviewCount = reviewCount;
     }
 
     public void updateRestaurant(Restaurant restaurant) {

@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Getter
-public class RestaurantListDto {
+public class RestaurantListDTO {
     private final Long id;
     private final String name;
     private final String imageUrl;
@@ -17,7 +17,7 @@ public class RestaurantListDto {
     private final Double reviewScore;
     private final Long reviewCount;
 
-    public RestaurantListDto(RestaurantListDocument restaurantListDocument) {
+    public RestaurantListDTO(RestaurantListDocument restaurantListDocument) {
         this.id = restaurantListDocument.getId();
         this.name = restaurantListDocument.getName();
         this.imageUrl = restaurantListDocument.getImageUrl();

@@ -1,9 +1,8 @@
 package com.astar.eattable.restaurant.controller;
 
-import com.astar.eattable.restaurant.command.BusinessHoursUpdateCommand;
-import com.astar.eattable.restaurant.command.RestaurantCreateCommand;
-import com.astar.eattable.restaurant.command.RestaurantUpdateCommand;
-import com.astar.eattable.restaurant.dto.RestaurantListDto;
+import com.astar.eattable.restaurant.command.*;
+import com.astar.eattable.restaurant.dto.RestaurantDetailsDTO;
+import com.astar.eattable.restaurant.dto.RestaurantListDTO;
 import com.astar.eattable.restaurant.service.RestaurantCommandService;
 import com.astar.eattable.restaurant.service.RestaurantQueryService;
 import com.astar.eattable.security.CurrentUser;
@@ -25,7 +24,7 @@ public class RestaurantController {
     private final RestaurantCommandService restaurantCommandService;
 
     @GetMapping("/nearby")
-    public ResponseEntity<List<RestaurantListDto>> getNearbyRestaurants(@RequestParam double longitude, @RequestParam double latitude) {
+    public ResponseEntity<List<RestaurantListDTO>> getNearbyRestaurants(@RequestParam double longitude, @RequestParam double latitude) {
         return ResponseEntity.ok(restaurantQueryService.getNearbyRestaurants(longitude, latitude));
     }
 
@@ -46,7 +45,22 @@ public class RestaurantController {
     }
 
     @PutMapping("/{restaurantId}/business-hours")
-    public void updateBusinessHours(@PathVariable Long restaurantId, @Valid @RequestBody BusinessHoursUpdateCommand command, @CurrentUser User currentUser) {
+    public void updateBusinessHours(@PathVariable Long restaurantId, @Valid @RequestBody BusinessHoursUpdateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
         restaurantCommandService.updateBusinessHours(restaurantId, command, currentUser);
+    }
+
+    @PostMapping("/{restaurantId}/menu-sections")
+    public void createMenuSection(@PathVariable Long restaurantId, @Valid @RequestBody MenuSectionCreateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.createMenuSection(restaurantId, command, currentUser);
+    }
+
+    @GetMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantDetailsDTO> getRestaurant(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(restaurantQueryService.getRestaurant(restaurantId));
+    }
+
+    @PutMapping("/{restaurantId}/menu-sections/{menuSectionId}")
+    public void updateMenuSection(@PathVariable Long restaurantId, @PathVariable Long menuSectionId, @Valid @RequestBody MenuSectionUpdateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.updateMenuSection(restaurantId, menuSectionId, command, currentUser);
     }
 }

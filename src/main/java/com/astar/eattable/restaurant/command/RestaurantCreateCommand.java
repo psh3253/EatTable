@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RestaurantCreateCommand {
     @NotNull
-    @Size(min = 2, max = 50, message = "식당 이름은 2자 이상 50자 이하로 입력해주세요.")
+    @Size(min = 1, max = 50, message = "식당 이름은 1자 이상 50자 이하로 입력해주세요.")
     private String name;
 
     @NotNull
@@ -37,7 +37,7 @@ public class RestaurantCreateCommand {
     private String imageUrl;
 
     @NotNull
-    @Size(min = 2, max = 30, message = "카테고리 이름은 2자 이상 30자 이하로 입력해주세요.")
+    @Size(min = 1, max = 30, message = "카테고리 이름은 1자 이상 30자 이하로 입력해주세요.")
     private String categoryName;
 
     @NotNull
