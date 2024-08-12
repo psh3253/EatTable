@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface MenuRepository extends JpaRepository<Menu, Long> {
     List<Menu> findAllByRestaurantId(Long restaurantId);
+
+    boolean existsByMenuSectionId(Long menuSectionId);
+
+    boolean existsByName(String name);
 }

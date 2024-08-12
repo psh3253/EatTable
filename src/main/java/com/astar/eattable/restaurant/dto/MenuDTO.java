@@ -8,14 +8,12 @@ import lombok.Getter;
 @Getter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class MenuDTO {
-    private final Long id;
     private final String name;
     private final String description;
     private final Integer price;
     private final String imageUrl;
 
     public MenuDTO(MenuDocument menuDocument) {
-        this.id = menuDocument.getId();
         this.name = menuDocument.getName();
         this.description = menuDocument.getDescription();
         this.price = menuDocument.getPrice();

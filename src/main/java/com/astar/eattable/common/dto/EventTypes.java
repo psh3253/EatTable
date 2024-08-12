@@ -8,4 +8,7 @@ public class EventTypes {
     public static final String MENU_SECTION_CREATED = "MenuSectionCreated";
     public static final String MENU_SECTION_DELETED = "MenuSectionDeleted";
     public static final String MENU_SECTION_UPDATED = "MenuSectionUpdated";
+    public static final String MENU_CREATED = "MenuCreated";
+    public static final String MENU_DELETED = "MenuDeleted";
+    public static final String MENU_UPDATED = "MenuUpdated";
 }

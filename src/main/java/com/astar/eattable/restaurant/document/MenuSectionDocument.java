@@ -1,25 +1,38 @@
 package com.astar.eattable.restaurant.document;
 
-import com.astar.eattable.restaurant.model.Menu;
-import com.astar.eattable.restaurant.model.MenuSection;
+import com.astar.eattable.restaurant.payload.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class MenuSectionDocument {
-    private Long id;
+    Map<Long, MenuDocument> menus;
     private String name;
-    List<MenuDocument> menus;
 
-    public MenuSectionDocument(MenuSection menuSection, List<Menu> menuList) {
-        this.id = menuSection.getId();
-        this.name = menuSection.getName();
-        this.menus = menuList.stream().map(MenuDocument::new).collect(Collectors.toList());
+    public MenuSectionDocument(MenuSectionCreateEventPayload payload) {
+        this.name = payload.getCommand().getName();
+        this.menus = new HashMap<>();
+    }
+
+    public void update(MenuSectionUpdateEventPayload payload) {
+        this.name = payload.getCommand().getName();
+    }
+
+    public void createMenu(MenuCreateEventPayload payload) {
+        this.menus.put(payload.getMenuId(), new MenuDocument(payload.getCommand()));
+    }
+
+    public void deleteMenu(MenuDeleteEventPayload payload) {
+        this.menus.remove(payload.getMenuId());
+    }
+
+    public void updateMenu(MenuUpdateEventPayload payload) {
+        this.menus.get(payload.getMenuId()).update(payload.getCommand());
     }
 }

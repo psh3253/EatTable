@@ -1,12 +1,12 @@
 package com.astar.eattable.restaurant.dto;
 
-import com.astar.eattable.restaurant.document.MenuSectionDocument;
 import com.astar.eattable.restaurant.document.RestaurantDetailsDocument;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -21,7 +21,8 @@ public class RestaurantDetailsDTO {
     private final String address;
     private final Double reviewScore;
     private final Long reviewCount;
-    private final List<MenuSectionDTO> menuSections;
+    private final List<BusinessHoursDTO> businessHours;
+    private final Map<Long, MenuSectionDTO> menuSections;
 
     public RestaurantDetailsDTO(RestaurantDetailsDocument restaurantDetailsDocument) {
         this.id = restaurantDetailsDocument.getId();
@@ -33,8 +34,10 @@ public class RestaurantDetailsDTO {
         this.address = restaurantDetailsDocument.getAddress();
         this.reviewScore = restaurantDetailsDocument.getReviewScore();
         this.reviewCount = restaurantDetailsDocument.getReviewCount();
-        this.menuSections = restaurantDetailsDocument.getMenuSections().stream()
-                .map(MenuSectionDTO::new)
+        this.businessHours = restaurantDetailsDocument.getBusinessHours().stream()
+                .map(BusinessHoursDTO::new)
                 .toList();
+        this.menuSections = restaurantDetailsDocument.getMenuSections().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> new MenuSectionDTO(entry.getValue())));
     }
 }

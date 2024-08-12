@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RestaurantValidator {
     public void validateRestaurantOwner(Restaurant restaurantId, Long userId) {
-        if(!restaurantId.getCreatedBy().getId().equals(userId)) {
+        if (!restaurantId.getCreatedBy().getId().equals(userId)) {
             throw new UnauthorizedRestaurantAccessException(restaurantId.getId(), userId);
         }
     }

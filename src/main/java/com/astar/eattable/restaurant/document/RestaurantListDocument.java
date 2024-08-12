@@ -1,6 +1,7 @@
 package com.astar.eattable.restaurant.document;
 
-import com.astar.eattable.restaurant.model.Restaurant;
+import com.astar.eattable.restaurant.command.RestaurantUpdateCommand;
+import com.astar.eattable.restaurant.payload.RestaurantCreateEventPayload;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,22 +30,28 @@ public class RestaurantListDocument {
     private Double reviewScore = 0.0;
     private Long reviewCount = 0L;
 
-    public RestaurantListDocument(Restaurant restaurant) {
-        this.id = restaurant.getId();
-        this.name = restaurant.getName();
-        this.imageUrl = restaurant.getImageUrl();
-        this.categoryName = restaurant.getCategoryName();
-        this.phone = restaurant.getPhone();
-        this.address = restaurant.getAddress();
-        this.location = new GeoJsonPoint(restaurant.getLongitude(), restaurant.getLatitude());
+    public RestaurantListDocument(RestaurantCreateEventPayload payload) {
+        this.id = payload.getRestaurantId();
+        this.name = payload.getCommand().getName();
+        this.imageUrl = payload.getCommand().getImageUrl();
+        this.categoryName = payload.getCommand().getCategoryName();
+        this.phone = payload.getCommand().getPhone();
+        this.address = payload.getCommand().getAddress();
+        this.location = new GeoJsonPoint(payload.getCommand().getLongitude(), payload.getCommand().getLatitude());
     }
 
-    public void updateRestaurant(Restaurant restaurant) {
-        this.name = restaurant.getName();
-        this.imageUrl = restaurant.getImageUrl();
-        this.categoryName = restaurant.getCategoryName();
-        this.phone = restaurant.getPhone();
-        this.address = restaurant.getAddress();
-        this.location = new GeoJsonPoint(restaurant.getLongitude(), restaurant.getLatitude());
+    public void updateRestaurant(RestaurantUpdateCommand command) {
+        if (command.getName() != null)
+            this.name = command.getName();
+        if (command.getImageUrl() != null)
+            this.imageUrl = command.getImageUrl();
+        if (command.getCategoryName() != null)
+            this.categoryName = command.getCategoryName();
+        if (command.getPhone() != null)
+            this.phone = command.getPhone();
+        if (command.getAddress() != null)
+            this.address = command.getAddress();
+        if (command.getLongitude() != null && command.getLatitude() != null)
+            this.location = new GeoJsonPoint(command.getLongitude(), command.getLatitude());
     }
 }

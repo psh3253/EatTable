@@ -1,4 +1,4 @@
-package com.astar.eattable.security.dto;
+package com.astar.eattable.user.model;
 
 public enum Role {
     ROLE_USER,

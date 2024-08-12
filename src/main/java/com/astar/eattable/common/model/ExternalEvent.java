@@ -1,8 +1,7 @@
-package com.astar.eattable.restaurant.model;
+package com.astar.eattable.common.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import com.astar.eattable.user.model.User;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,13 +14,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Entity
-public class RestaurantEvent {
+public class ExternalEvent {
     @Id
     @UuidGenerator
     private UUID eventId;
-
-    @NotNull
-    private Long restaurantId;
 
     @NotNull
     private String eventType;
@@ -35,26 +31,30 @@ public class RestaurantEvent {
     @NotNull
     private LocalDateTime createdAt;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User createdBy;
+
     private LocalDateTime publishedAt;
+
+    @Builder
+    public ExternalEvent(String eventType, String payload, User createdBy) {
+        this.eventType = eventType;
+        this.payload = payload;
+        this.createdBy = createdBy;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public static ExternalEvent from(String eventType, String payload, User createdBy) {
+        return ExternalEvent.builder()
+                .eventType(eventType)
+                .payload(payload)
+                .createdBy(createdBy)
+                .build();
+    }
 
     public void publish() {
         this.published = true;
         this.publishedAt = LocalDateTime.now();
-    }
-
-    @Builder
-    public RestaurantEvent(Long restaurantId, String eventType, String payload) {
-        this.restaurantId = restaurantId;
-        this.eventType = eventType;
-        this.payload = payload;
-        this.createdAt = LocalDateTime.now();
-    }
-
-    public static RestaurantEvent from(Long restaurantId, String eventType, String payload) {
-        return RestaurantEvent.builder()
-                .restaurantId(restaurantId)
-                .eventType(eventType)
-                .payload(payload)
-                .build();
     }
 }

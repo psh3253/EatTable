@@ -1,8 +1,8 @@
 package com.astar.eattable.security.service;
 
-import com.astar.eattable.security.dto.Role;
 import com.astar.eattable.security.dto.TokenDTO;
 import com.astar.eattable.user.exception.UserNotFoundException;
+import com.astar.eattable.user.model.Role;
 import com.astar.eattable.user.model.User;
 import com.astar.eattable.user.repository.UserRepository;
 import io.jsonwebtoken.Jwts;

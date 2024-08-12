@@ -35,8 +35,8 @@ public class RestaurantController {
     }
 
     @DeleteMapping("/{restaurantId}")
-    public void deleteRestaurant(@PathVariable Long restaurantId) {
-        restaurantCommandService.deleteRestaurant(restaurantId);
+    public void deleteRestaurant(@PathVariable Long restaurantId, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.deleteRestaurant(restaurantId, currentUser);
     }
 
     @PutMapping("/{restaurantId}")
@@ -49,18 +49,38 @@ public class RestaurantController {
         restaurantCommandService.updateBusinessHours(restaurantId, command, currentUser);
     }
 
-    @PostMapping("/{restaurantId}/menu-sections")
-    public void createMenuSection(@PathVariable Long restaurantId, @Valid @RequestBody MenuSectionCreateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
-        restaurantCommandService.createMenuSection(restaurantId, command, currentUser);
-    }
-
     @GetMapping("/{restaurantId}")
     public ResponseEntity<RestaurantDetailsDTO> getRestaurant(@PathVariable Long restaurantId) {
         return ResponseEntity.ok(restaurantQueryService.getRestaurant(restaurantId));
     }
 
+    @PostMapping("/{restaurantId}/menu-sections")
+    public void createMenuSection(@PathVariable Long restaurantId, @Valid @RequestBody MenuSectionCreateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.createMenuSection(restaurantId, command, currentUser);
+    }
+
     @PutMapping("/{restaurantId}/menu-sections/{menuSectionId}")
-    public void updateMenuSection(@PathVariable Long restaurantId, @PathVariable Long menuSectionId, @Valid @RequestBody MenuSectionUpdateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
-        restaurantCommandService.updateMenuSection(restaurantId, menuSectionId, command, currentUser);
+    public void updateMenuSection(@PathVariable String restaurantId, @PathVariable Long menuSectionId, @Valid @RequestBody MenuSectionUpdateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.updateMenuSection(menuSectionId, command, currentUser);
+    }
+
+    @DeleteMapping("/{restaurantId}/menu-sections/{menuSectionId}")
+    public void deleteMenuSection(@PathVariable String restaurantId, @PathVariable Long menuSectionId, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.deleteMenuSection(menuSectionId, currentUser);
+    }
+
+    @PostMapping("/{restaurantId}/menu-sections/{menuSectionId}/menus")
+    public void createMenu(@PathVariable Long restaurantId, @PathVariable Long menuSectionId, @Valid @RequestBody MenuCreateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.createMenu(menuSectionId, command, currentUser);
+    }
+
+    @DeleteMapping("/{restaurantId}/menu-sections/{menuSectionId}/menus/{menuId}")
+    public void deleteMenu(@PathVariable Long restaurantId, @PathVariable Long menuSectionId, @PathVariable Long menuId, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.deleteMenu(menuId, currentUser);
+    }
+
+    @PutMapping("/{restaurantId}/menu-sections/{menuSectionId}/menus/{menuId}")
+    public void updateMenu(@PathVariable Long restaurantId, @PathVariable Long menuSectionId, @PathVariable Long menuId, @Valid @RequestBody MenuUpdateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
+        restaurantCommandService.updateMenu(menuId, command, currentUser);
     }
 }
