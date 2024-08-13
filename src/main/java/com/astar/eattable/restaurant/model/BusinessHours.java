@@ -32,6 +32,7 @@ public class BusinessHours {
 
     @NotNull
     private LocalTime endTime;
+
     private LocalTime breakStartTime;
     private LocalTime breakEndTime;
     private LocalTime lastOrderTime;

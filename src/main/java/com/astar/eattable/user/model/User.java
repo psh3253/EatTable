@@ -17,22 +17,29 @@ import java.time.LocalDateTime;
 @SQLRestriction("deleted = false")
 @Entity
 public class User extends BaseTimeEntity {
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private final Role role = Role.ROLE_USER;
-    @NotNull
-    private final Boolean deleted = false;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotNull
     private String email;
+
     @NotNull
     private String password;
+
     @NotNull
     private String nickname;
+
     @NotNull
     private String phoneNumber;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private final Role role = Role.ROLE_USER;
+
+    @NotNull
+    private final Boolean deleted = false;
+
     private LocalDateTime deletedAt;
 
     @Builder

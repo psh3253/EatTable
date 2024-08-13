@@ -2,6 +2,8 @@ package com.astar.eattable.restaurant.listener;
 
 import com.astar.eattable.common.dto.EventTypes;
 import com.astar.eattable.common.model.ExternalEvent;
+import com.astar.eattable.common.service.EventService;
+import com.astar.eattable.restaurant.event.RestaurantCreateEvent;
 import com.astar.eattable.restaurant.payload.*;
 import com.astar.eattable.restaurant.service.RestaurantQueryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,12 +13,20 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @RequiredArgsConstructor
 @Component
 public class RestaurantEventListener {
     private final RestaurantQueryService restaurantQueryService;
+    private final EventService eventService;
     private final ObjectMapper objectMapper;
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleRestaurantCreateEvent(RestaurantCreateEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.RESTAURANT_CREATED, objectMapper.writeValueAsString(RestaurantCreateEventPayload.from(event.getRestaurantId(), event.getCommand())), event.getCreatedBy());
+    }
 
     @KafkaListener(topics = "restaurant-events", groupId = "restaurant-service")
     public void listenRestaurantEvents(@Payload String message, Acknowledgment ack) throws JsonProcessingException {

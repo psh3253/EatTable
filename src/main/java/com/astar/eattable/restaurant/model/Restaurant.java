@@ -58,8 +58,7 @@ public class Restaurant extends BaseTimeEntity {
     private LocalDateTime deletedAt;
 
     @Builder
-    public Restaurant(Long id, String name, String description, String imageUrl, String categoryName, String phone, String address, Double latitude, Double longitude, User createdBy) {
-        this.id = id;
+    public Restaurant(String name, String description, String imageUrl, String categoryName, String phone, String address, Double latitude, Double longitude, User createdBy) {
         this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;

@@ -5,6 +5,7 @@ import com.astar.eattable.common.model.ExternalEvent;
 import com.astar.eattable.common.repository.ExternalEventRepository;
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.dto.Day;
+import com.astar.eattable.restaurant.event.RestaurantCreateEvent;
 import com.astar.eattable.restaurant.exception.*;
 import com.astar.eattable.restaurant.model.BusinessHours;
 import com.astar.eattable.restaurant.model.Menu;
@@ -20,6 +21,7 @@ import com.astar.eattable.user.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,16 +35,16 @@ public class RestaurantCommandService {
     private final ExternalEventRepository externalEventRepository;
     private final RestaurantValidator restaurantValidator;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
-    public Long createRestaurant(RestaurantCreateCommand command, User currentUser) throws JsonProcessingException {
+    public Long createRestaurant(RestaurantCreateCommand command, User currentUser) {
         validateRestaurantAlreadyExists(command.getName(), command.getAddress());
 
         Restaurant restaurant = restaurantRepository.save(command.toEntity(currentUser));
         command.getBusinessHours().forEach(businessHoursCommand -> businessHoursRepository.save(businessHoursCommand.toEntity(restaurant)));
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.RESTAURANT_CREATED, objectMapper.writeValueAsString(RestaurantCreateEventPayload.from(restaurant.getId(), command)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new RestaurantCreateEvent(restaurant.getId(), command, currentUser));
         return restaurant.getId();
     }
 
