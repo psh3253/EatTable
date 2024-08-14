@@ -1,17 +1,13 @@
 package com.astar.eattable.restaurant.service;
 
-import com.astar.eattable.common.dto.EventTypes;
-import com.astar.eattable.common.model.ExternalEvent;
-import com.astar.eattable.common.repository.ExternalEventRepository;
+import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.restaurant.command.*;
-import com.astar.eattable.restaurant.dto.Day;
 import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.exception.*;
 import com.astar.eattable.restaurant.model.BusinessHours;
 import com.astar.eattable.restaurant.model.Menu;
 import com.astar.eattable.restaurant.model.MenuSection;
 import com.astar.eattable.restaurant.model.Restaurant;
-import com.astar.eattable.restaurant.payload.*;
 import com.astar.eattable.restaurant.repository.BusinessHoursRepository;
 import com.astar.eattable.restaurant.repository.MenuRepository;
 import com.astar.eattable.restaurant.repository.MenuSectionRepository;
@@ -19,7 +15,6 @@ import com.astar.eattable.restaurant.repository.RestaurantRepository;
 import com.astar.eattable.restaurant.validator.RestaurantValidator;
 import com.astar.eattable.user.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -32,9 +27,7 @@ public class RestaurantCommandService {
     private final BusinessHoursRepository businessHoursRepository;
     private final MenuSectionRepository menuSectionRepository;
     private final MenuRepository menuRepository;
-    private final ExternalEventRepository externalEventRepository;
     private final RestaurantValidator restaurantValidator;
-    private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher publisher;
 
     @Transactional
@@ -54,7 +47,7 @@ public class RestaurantCommandService {
         restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
         restaurantRepository.delete(restaurant);
 
-       publisher.publishEvent(new RestaurantDeleteEvent(restaurantId, currentUser));
+        publisher.publishEvent(new RestaurantDeleteEvent(restaurantId, currentUser));
     }
 
     @Transactional
@@ -67,7 +60,7 @@ public class RestaurantCommandService {
     }
 
     @Transactional
-    public void updateBusinessHours(Long restaurantId, BusinessHoursUpdateCommand command, User currentUser) throws JsonProcessingException {
+    public void updateBusinessHours(Long restaurantId, BusinessHoursUpdateCommand command, User currentUser) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow();
         restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
 
@@ -80,7 +73,7 @@ public class RestaurantCommandService {
     }
 
     @Transactional
-    public void createMenuSection(Long restaurantId, MenuSectionCreateCommand command, User currentUser) throws JsonProcessingException {
+    public void createMenuSection(Long restaurantId, MenuSectionCreateCommand command, User currentUser) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
         restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
         validateMenuSectionAlreadyExists(restaurantId, command.getName());
@@ -90,7 +83,7 @@ public class RestaurantCommandService {
     }
 
     @Transactional
-    public void updateMenuSection(Long menuSectionId, MenuSectionUpdateCommand command, User currentUser) throws JsonProcessingException {
+    public void updateMenuSection(Long menuSectionId, MenuSectionUpdateCommand command, User currentUser) {
         validateMenuSectionAlreadyExists(menuSectionId, command.getName());
         MenuSection menuSection = menuSectionRepository.findById(menuSectionId).orElseThrow(() -> new MenuSectionNotFoundException(menuSectionId));
         restaurantValidator.validateRestaurantOwner(menuSection.getRestaurant(), currentUser.getId());
@@ -100,7 +93,7 @@ public class RestaurantCommandService {
     }
 
     @Transactional
-    public void deleteMenuSection(Long menuSectionId, User currentUser) throws JsonProcessingException {
+    public void deleteMenuSection(Long menuSectionId, User currentUser) {
         MenuSection menuSection = menuSectionRepository.findById(menuSectionId).orElseThrow(() -> new MenuSectionNotFoundException(menuSectionId));
         restaurantValidator.validateRestaurantOwner(menuSection.getRestaurant(), currentUser.getId());
         validateMenuSectionNotEmpty(menuSectionId);
@@ -110,7 +103,7 @@ public class RestaurantCommandService {
     }
 
     @Transactional
-    public void createMenu(Long menuSectionId, MenuCreateCommand command, User currentUser) throws JsonProcessingException {
+    public void createMenu(Long menuSectionId, MenuCreateCommand command, User currentUser) {
         MenuSection menuSection = menuSectionRepository.findById(menuSectionId).orElseThrow(() -> new MenuSectionNotFoundException(menuSectionId));
         restaurantValidator.validateRestaurantOwner(menuSection.getRestaurant(), currentUser.getId());
         validateMenuAlreadyExists(menuSectionId, command.getName());
@@ -120,7 +113,7 @@ public class RestaurantCommandService {
     }
 
     @Transactional
-    public void deleteMenu(Long menuId, User currentUser) throws JsonProcessingException {
+    public void deleteMenu(Long menuId, User currentUser) {
         Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuNotFoundException(menuId));
         restaurantValidator.validateRestaurantOwner(menu.getRestaurant(), currentUser.getId());
         menuRepository.delete(menu);
@@ -129,7 +122,7 @@ public class RestaurantCommandService {
     }
 
     @Transactional
-    public void updateMenu(Long menuId, MenuUpdateCommand command, User currentUser) throws JsonProcessingException {
+    public void updateMenu(Long menuId, MenuUpdateCommand command, User currentUser) {
         Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuNotFoundException(menuId));
         restaurantValidator.validateRestaurantOwner(menu.getRestaurant(), currentUser.getId());
         menu.update(command);

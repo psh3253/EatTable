@@ -1,7 +1,7 @@
 package com.astar.eattable.restaurant.document;
 
+import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.restaurant.command.BusinessHoursCommand;
-import com.astar.eattable.restaurant.dto.Day;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

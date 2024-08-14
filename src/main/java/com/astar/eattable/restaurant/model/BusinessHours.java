@@ -1,7 +1,7 @@
 package com.astar.eattable.restaurant.model;
 
+import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.restaurant.command.BusinessHoursCommand;
-import com.astar.eattable.restaurant.dto.Day;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package com.astar.eattable.restaurant.repository;
 
-import com.astar.eattable.restaurant.dto.Day;
+import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.restaurant.model.BusinessHours;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -48,6 +48,12 @@ public class Restaurant extends BaseTimeEntity {
     @NotNull
     private Double longitude;
 
+    @NotNull
+    private Integer reservationDuration = 60;
+
+    @NotNull
+    private Boolean isAvailable = true;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -92,5 +98,17 @@ public class Restaurant extends BaseTimeEntity {
         if (command.getLongitude() != null) {
             this.longitude = command.getLongitude();
         }
+    }
+
+    public void updateReservationDuration(Integer duration) {
+        this.reservationDuration = duration;
+    }
+
+    public void open() {
+        this.isAvailable = true;
+    }
+
+    public void close() {
+        this.isAvailable = false;
     }
 }

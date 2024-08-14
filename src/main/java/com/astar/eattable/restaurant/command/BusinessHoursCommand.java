@@ -1,6 +1,6 @@
 package com.astar.eattable.restaurant.command;
 
-import com.astar.eattable.restaurant.dto.Day;
+import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.restaurant.model.BusinessHours;
 import com.astar.eattable.restaurant.model.Restaurant;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

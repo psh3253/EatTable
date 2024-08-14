@@ -26,7 +26,7 @@ public class ExternalEvent {
     private String payload;
 
     @NotNull
-    private boolean published = false;
+    private final boolean published = false;
 
     @NotNull
     private LocalDateTime createdAt;
