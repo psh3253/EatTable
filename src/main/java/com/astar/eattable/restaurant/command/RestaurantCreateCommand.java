@@ -49,7 +49,7 @@ public class RestaurantCreateCommand {
     @NotNull
     private Double longitude;
 
-    public Restaurant toEntity(User createdBy) {
+    public Restaurant toEntity(User user) {
         return Restaurant.builder()
                 .name(name)
                 .address(address)
@@ -59,7 +59,7 @@ public class RestaurantCreateCommand {
                 .categoryName(categoryName)
                 .latitude(latitude)
                 .longitude(longitude)
-                .createdBy(createdBy)
+                .user(user)
                 .build();
     }
 }

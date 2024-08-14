@@ -1,14 +1,16 @@
 package com.astar.eattable.restaurant.event;
 
-import com.astar.eattable.restaurant.command.RestaurantCreateCommand;
+import com.astar.eattable.restaurant.command.MenuCreateCommand;
 import com.astar.eattable.user.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Getter
 @AllArgsConstructor
-public class RestaurantCreateEvent {
+@Getter
+public class MenuCreateEvent {
     private Long restaurantId;
-    private RestaurantCreateCommand command;
+    private Long menuSectionId;
+    private Long menuId;
+    private MenuCreateCommand command;
     private User user;
 }

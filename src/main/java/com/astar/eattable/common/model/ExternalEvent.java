@@ -33,28 +33,23 @@ public class ExternalEvent {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User createdBy;
+    private User user;
 
     private LocalDateTime publishedAt;
 
     @Builder
-    public ExternalEvent(String eventType, String payload, User createdBy) {
+    public ExternalEvent(String eventType, String payload, User user) {
         this.eventType = eventType;
         this.payload = payload;
-        this.createdBy = createdBy;
+        this.user = user;
         this.createdAt = LocalDateTime.now();
     }
 
-    public static ExternalEvent from(String eventType, String payload, User createdBy) {
+    public static ExternalEvent from(String eventType, String payload, User user) {
         return ExternalEvent.builder()
                 .eventType(eventType)
                 .payload(payload)
-                .createdBy(createdBy)
+                .user(user)
                 .build();
-    }
-
-    public void publish() {
-        this.published = true;
-        this.publishedAt = LocalDateTime.now();
     }
 }

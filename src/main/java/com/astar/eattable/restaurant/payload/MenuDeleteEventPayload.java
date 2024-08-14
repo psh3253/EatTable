@@ -1,5 +1,6 @@
 package com.astar.eattable.restaurant.payload;
 
+import com.astar.eattable.restaurant.event.MenuDeleteEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ public class MenuDeleteEventPayload {
 
     private Long menuId;
 
-    public static MenuDeleteEventPayload from(Long restaurantId, Long menuSectionId, Long menuId) {
-        return new MenuDeleteEventPayload(restaurantId, menuSectionId, menuId);
+    public static MenuDeleteEventPayload from(MenuDeleteEvent event) {
+        return new MenuDeleteEventPayload(event.getRestaurantId(), event.getMenuSectionId(), event.getMenuId());
     }
 }

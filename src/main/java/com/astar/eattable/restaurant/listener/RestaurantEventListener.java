@@ -3,7 +3,7 @@ package com.astar.eattable.restaurant.listener;
 import com.astar.eattable.common.dto.EventTypes;
 import com.astar.eattable.common.model.ExternalEvent;
 import com.astar.eattable.common.service.EventService;
-import com.astar.eattable.restaurant.event.RestaurantCreateEvent;
+import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.payload.*;
 import com.astar.eattable.restaurant.service.RestaurantQueryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,7 +25,52 @@ public class RestaurantEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleRestaurantCreateEvent(RestaurantCreateEvent event) throws JsonProcessingException {
-        eventService.saveExternalEvent(EventTypes.RESTAURANT_CREATED, objectMapper.writeValueAsString(RestaurantCreateEventPayload.from(event.getRestaurantId(), event.getCommand())), event.getCreatedBy());
+        eventService.saveExternalEvent(EventTypes.RESTAURANT_CREATED, objectMapper.writeValueAsString(RestaurantCreateEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleRestaurantDeleteEvent(RestaurantDeleteEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.RESTAURANT_DELETED, objectMapper.writeValueAsString(RestaurantDeleteEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleRestaurantUpdateEvent(RestaurantUpdateEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.RESTAURANT_UPDATED, objectMapper.writeValueAsString(RestaurantUpdateEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleBusinessHoursUpdateEvent(BusinessHoursUpdateEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.BUSINESS_HOURS_UPDATED, objectMapper.writeValueAsString(BusinessHoursUpdateEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleMenuSectionCreateEvent(MenuSectionCreateEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.MENU_SECTION_CREATED, objectMapper.writeValueAsString(MenuSectionCreateEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleMenuSectionDeleteEvent(MenuSectionDeleteEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.MENU_SECTION_DELETED, objectMapper.writeValueAsString(MenuSectionDeleteEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleMenuSectionUpdateEvent(MenuSectionUpdateEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.MENU_SECTION_UPDATED, objectMapper.writeValueAsString(MenuSectionUpdateEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleMenuCreateEvent(MenuCreateEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.MENU_CREATED, objectMapper.writeValueAsString(MenuCreateEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleMenuDeleteEvent(MenuDeleteEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.MENU_DELETED, objectMapper.writeValueAsString(MenuDeleteEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleMenuUpdateEvent(MenuUpdateEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.MENU_UPDATED, objectMapper.writeValueAsString(MenuUpdateEventPayload.from(event)), event.getUser());
     }
 
     @KafkaListener(topics = "restaurant-events", groupId = "restaurant-service")

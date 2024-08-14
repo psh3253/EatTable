@@ -13,8 +13,8 @@ public class EventService {
     private final ExternalEventRepository externalEventRepository;
 
     @Transactional
-    public void saveExternalEvent(String eventType, String payload, User createdBy) {
-        ExternalEvent externalEvent = ExternalEvent.from(eventType, payload, createdBy);
+    public void saveExternalEvent(String eventType, String payload, User user) {
+        ExternalEvent externalEvent = ExternalEvent.from(eventType, payload, user);
         externalEventRepository.save(externalEvent);
     }
 }

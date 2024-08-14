@@ -50,7 +50,7 @@ public class Restaurant extends BaseTimeEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User createdBy;
+    private User user;
 
     @NotNull
     private final Boolean deleted = false;
@@ -58,7 +58,7 @@ public class Restaurant extends BaseTimeEntity {
     private LocalDateTime deletedAt;
 
     @Builder
-    public Restaurant(String name, String description, String imageUrl, String categoryName, String phone, String address, Double latitude, Double longitude, User createdBy) {
+    public Restaurant(String name, String description, String imageUrl, String categoryName, String phone, String address, Double latitude, Double longitude, User user) {
         this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
@@ -67,7 +67,7 @@ public class Restaurant extends BaseTimeEntity {
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.createdBy = createdBy;
+        this.user = user;
     }
 
     public void update(RestaurantUpdateCommand command) {

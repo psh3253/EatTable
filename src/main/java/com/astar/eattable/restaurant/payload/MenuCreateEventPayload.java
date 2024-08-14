@@ -1,6 +1,7 @@
 package com.astar.eattable.restaurant.payload;
 
 import com.astar.eattable.restaurant.command.MenuCreateCommand;
+import com.astar.eattable.restaurant.event.MenuCreateEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ public class MenuCreateEventPayload {
 
     private MenuCreateCommand command;
 
-    public static MenuCreateEventPayload from(Long restaurantId, Long menuSectionId, Long menuId, MenuCreateCommand command) {
-        return new MenuCreateEventPayload(restaurantId, menuSectionId, menuId, command);
+    public static MenuCreateEventPayload from(MenuCreateEvent event) {
+        return new MenuCreateEventPayload(event.getRestaurantId(), event.getMenuSectionId(), event.getMenuId(), event.getCommand());
     }
 }

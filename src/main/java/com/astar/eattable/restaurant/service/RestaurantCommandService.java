@@ -5,7 +5,7 @@ import com.astar.eattable.common.model.ExternalEvent;
 import com.astar.eattable.common.repository.ExternalEventRepository;
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.dto.Day;
-import com.astar.eattable.restaurant.event.RestaurantCreateEvent;
+import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.exception.*;
 import com.astar.eattable.restaurant.model.BusinessHours;
 import com.astar.eattable.restaurant.model.Menu;
@@ -49,23 +49,21 @@ public class RestaurantCommandService {
     }
 
     @Transactional
-    public void deleteRestaurant(Long restaurantId, User currentUser) throws JsonProcessingException {
+    public void deleteRestaurant(Long restaurantId, User currentUser) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
         restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
         restaurantRepository.delete(restaurant);
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.RESTAURANT_DELETED, objectMapper.writeValueAsString(RestaurantDeleteEventPayload.from(restaurantId)), currentUser);
-        externalEventRepository.save(externalEvent);
+       publisher.publishEvent(new RestaurantDeleteEvent(restaurantId, currentUser));
     }
 
     @Transactional
-    public void updateRestaurant(Long restaurantId, RestaurantUpdateCommand command, User currentUser) throws JsonProcessingException {
+    public void updateRestaurant(Long restaurantId, RestaurantUpdateCommand command, User currentUser) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow();
         restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
         restaurant.update(command);
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.RESTAURANT_UPDATED, objectMapper.writeValueAsString(RestaurantUpdateEventPayload.from(restaurantId, command)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new RestaurantUpdateEvent(restaurantId, command, currentUser));
     }
 
     @Transactional
@@ -78,8 +76,7 @@ public class RestaurantCommandService {
             businessHours.update(businessHoursCommand);
         });
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.BUSINESS_HOURS_UPDATED, objectMapper.writeValueAsString(BusinessHoursUpdateEventPayload.from(restaurantId, command)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new BusinessHoursUpdateEvent(restaurantId, command, currentUser));
     }
 
     @Transactional
@@ -89,9 +86,7 @@ public class RestaurantCommandService {
         validateMenuSectionAlreadyExists(restaurantId, command.getName());
 
         MenuSection menuSection = menuSectionRepository.save(command.toEntity(restaurant));
-
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.MENU_SECTION_CREATED, objectMapper.writeValueAsString(MenuSectionCreateEventPayload.from(restaurantId, menuSection.getId(), command)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new MenuSectionCreateEvent(restaurantId, menuSection.getId(), command, currentUser));
     }
 
     @Transactional
@@ -101,8 +96,7 @@ public class RestaurantCommandService {
         restaurantValidator.validateRestaurantOwner(menuSection.getRestaurant(), currentUser.getId());
         menuSection.update(command);
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.MENU_SECTION_UPDATED, objectMapper.writeValueAsString(MenuSectionUpdateEventPayload.from(menuSection.getRestaurant().getId(), menuSectionId, command)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new MenuSectionUpdateEvent(menuSection.getRestaurant().getId(), menuSectionId, command, currentUser));
     }
 
     @Transactional
@@ -112,8 +106,7 @@ public class RestaurantCommandService {
         validateMenuSectionNotEmpty(menuSectionId);
         menuSectionRepository.delete(menuSection);
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.MENU_SECTION_DELETED, objectMapper.writeValueAsString(MenuSectionDeleteEventPayload.from(menuSection.getRestaurant().getId(), menuSectionId)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new MenuSectionDeleteEvent(menuSection.getRestaurant().getId(), menuSectionId, currentUser));
     }
 
     @Transactional
@@ -123,8 +116,7 @@ public class RestaurantCommandService {
         validateMenuAlreadyExists(menuSectionId, command.getName());
         Menu menu = menuRepository.save(command.toEntity(menuSection));
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.MENU_CREATED, objectMapper.writeValueAsString(MenuCreateEventPayload.from(menuSection.getRestaurant().getId(), menuSectionId, menu.getId(), command)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new MenuCreateEvent(menu.getRestaurant().getId(), menuSectionId, menu.getId(), command, currentUser));
     }
 
     @Transactional
@@ -133,8 +125,7 @@ public class RestaurantCommandService {
         restaurantValidator.validateRestaurantOwner(menu.getRestaurant(), currentUser.getId());
         menuRepository.delete(menu);
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.MENU_DELETED, objectMapper.writeValueAsString(MenuDeleteEventPayload.from(menu.getRestaurant().getId(), menu.getMenuSection().getId(), menuId)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new MenuDeleteEvent(menu.getRestaurant().getId(), menu.getMenuSection().getId(), menuId, currentUser));
     }
 
     @Transactional
@@ -143,8 +134,7 @@ public class RestaurantCommandService {
         restaurantValidator.validateRestaurantOwner(menu.getRestaurant(), currentUser.getId());
         menu.update(command);
 
-        ExternalEvent externalEvent = ExternalEvent.from(EventTypes.MENU_UPDATED, objectMapper.writeValueAsString(MenuUpdateEventPayload.from(menu.getRestaurant().getId(), menu.getMenuSection().getId(), menuId, command)), currentUser);
-        externalEventRepository.save(externalEvent);
+        publisher.publishEvent(new MenuUpdateEvent(menu.getRestaurant().getId(), menu.getMenuSection().getId(), menuId, command, currentUser));
     }
 
     private void validateRestaurantAlreadyExists(String name, String address) {
