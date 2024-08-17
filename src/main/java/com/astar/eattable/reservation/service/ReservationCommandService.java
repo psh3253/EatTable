@@ -35,25 +35,21 @@ public class ReservationCommandService {
         int[] capacities = {1, 2, 3, 4};
         List<RestaurantTable> restaurantTables = new ArrayList<>();
         for (int capacity : capacities) {
-            RestaurantTable restaurantTable = RestaurantTable.builder()
-                    .capacity(capacity)
-                    .count(0)
-                    .restaurant(restaurant)
-                    .build();
+            RestaurantTable restaurantTable = RestaurantTable.builder().capacity(capacity).count(0).restaurant(restaurant).build();
             restaurantTables.add(restaurantTable);
         }
         restaurantTableRepository.saveAll(restaurantTables);
     }
 
     private boolean isBreakTime(LocalTime startTime, LocalTime breakStartTime, LocalTime breakEndTime) {
-        if(breakStartTime != null && breakEndTime != null) {
+        if (breakStartTime != null && breakEndTime != null) {
             return startTime.isAfter(breakStartTime) && startTime.isBefore(breakEndTime) || startTime.equals(breakStartTime);
         }
         return false;
     }
 
     @Transactional
-    public void createTableAvailability(Long restaurantId) {
+    public void createTableAvailabilities(Long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
         List<RestaurantTable> restaurantTables = restaurantTableRepository.findAllByRestaurantId(restaurantId);
         List<BusinessHours> businessHours = businessHoursRepository.findAllByRestaurantId(restaurantId);
@@ -61,32 +57,40 @@ public class ReservationCommandService {
         List<TableAvailability> tableAvailabilities = new ArrayList<>();
         LocalDate date = LocalDate.now();
         Integer reservationDuration = restaurant.getReservationDuration();
+        LocalTime startTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getStartTime();
+        LocalTime lastTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getLastOrderTime() != null ? businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getLastOrderTime() : businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getEndTime();
+        LocalTime breakStartTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getBreakStartTime();
+        LocalTime breakEndTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getBreakEndTime();
 
         for (int i = 0; i < 30; i++) {
-            LocalTime startTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getStartTime();
-            LocalTime lastTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getLastOrderTime() != null ? businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getLastOrderTime() : businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getEndTime();
-            LocalTime breakStartTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getBreakStartTime();
-            LocalTime breakEndTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getBreakEndTime();
-            while (startTime.plusMinutes(reservationDuration).isBefore(lastTime) || startTime.plusMinutes(reservationDuration).equals(lastTime)) {
-                if(isBreakTime(startTime, breakStartTime, breakEndTime)) {
-                    startTime = startTime.plusMinutes(30);
-                    continue;
-                }
-                for (RestaurantTable restaurantTable : restaurantTables) {
-                    TableAvailability tableAvailability = TableAvailability.builder()
-                            .date(date)
-                            .startTime(startTime)
-                            .endTime(startTime.plusMinutes(reservationDuration))
-                            .restaurant(restaurant)
-                            .restaurantTable(restaurantTable)
-                            .remainingTableCount(restaurantTable.getCount())
-                            .build();
-                    tableAvailabilities.add(tableAvailability);
-                }
-                startTime = startTime.plusMinutes(30);
-            }
+            List<TableAvailability> dayTableAvailabilities = createDayTableAvailabilities(startTime, lastTime, breakStartTime, breakEndTime, reservationDuration, restaurantTables, date, restaurant);
             date = date.plusDays(1);
+            tableAvailabilities.addAll(dayTableAvailabilities);
         }
         tableAvailabilityRepository.saveAll(tableAvailabilities);
+    }
+
+    private List<TableAvailability> createDayTableAvailabilities(LocalTime startTime, LocalTime lastTime, LocalTime breakStartTime, LocalTime breakEndTime, Integer reservationDuration, List<RestaurantTable> restaurantTables, LocalDate date, Restaurant restaurant) {
+        List<TableAvailability> dayTableAvailabilities = new ArrayList<>();
+        while (startTime.plusMinutes(reservationDuration).isBefore(lastTime) || startTime.plusMinutes(reservationDuration).equals(lastTime)) {
+            if (isBreakTime(startTime, breakStartTime, breakEndTime)) {
+                startTime = startTime.plusMinutes(30);
+                continue;
+            }
+            for (RestaurantTable restaurantTable : restaurantTables) {
+                TableAvailability tableAvailability = TableAvailability.builder().date(date).startTime(startTime).endTime(startTime.plusMinutes(reservationDuration)).restaurant(restaurant).restaurantTable(restaurantTable).remainingTableCount(restaurantTable.getCount()).build();
+                dayTableAvailabilities.add(tableAvailability);
+            }
+            startTime = startTime.plusMinutes(30);
+        }
+        return dayTableAvailabilities;
+    }
+
+    @Transactional
+    public void createAllTableAvailabilities() {
+        List<Restaurant> restaurants = restaurantRepository.findAll();
+        for (Restaurant restaurant : restaurants) {
+            createTableAvailabilities(restaurant.getId());
+        }
     }
 }

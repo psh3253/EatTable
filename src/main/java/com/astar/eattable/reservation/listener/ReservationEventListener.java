@@ -21,6 +21,6 @@ public class ReservationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleRestaurantCreateEventAsync(RestaurantCreateEvent event) {
-        reservationCommandService.createTableAvailability(event.getRestaurantId());
+        reservationCommandService.createTableAvailabilities(event.getRestaurantId());
     }
 }
