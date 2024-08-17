@@ -47,6 +47,7 @@ spring.kafka.properties.security.protocol=SASL_SSL
 + CQRS 패턴을 적용해 Command와 Query를 분리한 아키텍처 구현
 + Transaction Outbox Pattern을 통해 데이터 일관성 유지 및 이벤트 기반 아키텍처 구축
 + Command와 Query 모델 동기화를 위한 Message Relay Server 구축
++ Spring Batch를 통한 정기적인 테이블 가용성 데이터 생성
 
 ## License / 라이센스
 
