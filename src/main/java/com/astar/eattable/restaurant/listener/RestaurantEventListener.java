@@ -73,6 +73,16 @@ public class RestaurantEventListener {
         eventService.saveExternalEvent(EventTypes.MENU_UPDATED, objectMapper.writeValueAsString(MenuUpdateEventPayload.from(event)), event.getUser());
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleClosedPeriodCreateEvent(ClosedPeriodCreateEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.CLOSED_PERIOD_CREATED, objectMapper.writeValueAsString(ClosedPeriodCreateEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleClosedPeriodDeleteEvent(ClosedPeriodDeleteEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.CLOSED_PERIOD_DELETED, objectMapper.writeValueAsString(ClosedPeriodDeleteEventPayload.from(event)), event.getUser());
+    }
+
     @KafkaListener(topics = "restaurant-events", groupId = "restaurant-service")
     public void listenRestaurantEvents(@Payload String message, Acknowledgment ack) throws JsonProcessingException {
         ExternalEvent externalRestaurantEvent = objectMapper.readValue(message, ExternalEvent.class);
@@ -111,6 +121,12 @@ public class RestaurantEventListener {
                 break;
             case EventTypes.MENU_UPDATED:
                 restaurantQueryService.updateMenu(objectMapper.readValue(message.getPayload(), MenuUpdateEventPayload.class));
+                break;
+            case EventTypes.CLOSED_PERIOD_CREATED:
+                restaurantQueryService.createClosedPeriod(objectMapper.readValue(message.getPayload(), ClosedPeriodCreateEventPayload.class));
+                break;
+            case EventTypes.CLOSED_PERIOD_DELETED:
+                restaurantQueryService.deleteClosedPeriod(objectMapper.readValue(message.getPayload(), ClosedPeriodDeleteEventPayload.class));
                 break;
         }
     }

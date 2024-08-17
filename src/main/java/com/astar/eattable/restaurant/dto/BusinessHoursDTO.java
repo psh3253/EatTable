@@ -15,12 +15,12 @@ public class BusinessHoursDTO {
     private final String breakEndTime;
     private final String lastOrderTime;
 
-    public BusinessHoursDTO(BusinessHoursDocument businessHoursDocument) {
-        this.day = businessHoursDocument.getDay().name();
-        this.startTime = businessHoursDocument.getStartTime();
-        this.endTime = businessHoursDocument.getEndTime();
-        this.breakStartTime = businessHoursDocument.getBreakStartTime();
-        this.breakEndTime = businessHoursDocument.getBreakEndTime();
-        this.lastOrderTime = businessHoursDocument.getLastOrderTime();
+    public BusinessHoursDTO(BusinessHoursDocument document) {
+        this.day = document.getDay().name();
+        this.startTime = document.getStartTime();
+        this.endTime = document.getEndTime();
+        this.breakStartTime = document.getBreakStartTime();
+        this.breakEndTime = document.getBreakEndTime();
+        this.lastOrderTime = document.getLastOrderTime();
     }
 }

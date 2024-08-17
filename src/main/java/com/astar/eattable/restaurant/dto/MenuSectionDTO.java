@@ -14,9 +14,9 @@ public class MenuSectionDTO {
     private final String name;
     private final Map<Long, MenuDTO> menus;
 
-    public MenuSectionDTO(MenuSectionDocument menuSectionDocument) {
-        this.name = menuSectionDocument.getName();
-        this.menus = menuSectionDocument.getMenus().entrySet().stream()
+    public MenuSectionDTO(MenuSectionDocument document) {
+        this.name = document.getName();
+        this.menus = document.getMenus().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> new MenuDTO(entry.getValue())));
     }
 }

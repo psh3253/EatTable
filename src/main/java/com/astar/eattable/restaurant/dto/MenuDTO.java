@@ -13,10 +13,10 @@ public class MenuDTO {
     private final Integer price;
     private final String imageUrl;
 
-    public MenuDTO(MenuDocument menuDocument) {
-        this.name = menuDocument.getName();
-        this.description = menuDocument.getDescription();
-        this.price = menuDocument.getPrice();
-        this.imageUrl = menuDocument.getImageUrl();
+    public MenuDTO(MenuDocument document) {
+        this.name = document.getName();
+        this.description = document.getDescription();
+        this.price = document.getPrice();
+        this.imageUrl = document.getImageUrl();
     }
 }

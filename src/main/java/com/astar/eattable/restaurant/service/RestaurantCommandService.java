@@ -4,21 +4,16 @@ import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.exception.*;
-import com.astar.eattable.restaurant.model.BusinessHours;
-import com.astar.eattable.restaurant.model.Menu;
-import com.astar.eattable.restaurant.model.MenuSection;
-import com.astar.eattable.restaurant.model.Restaurant;
-import com.astar.eattable.restaurant.repository.BusinessHoursRepository;
-import com.astar.eattable.restaurant.repository.MenuRepository;
-import com.astar.eattable.restaurant.repository.MenuSectionRepository;
-import com.astar.eattable.restaurant.repository.RestaurantRepository;
+import com.astar.eattable.restaurant.model.*;
+import com.astar.eattable.restaurant.repository.*;
 import com.astar.eattable.restaurant.validator.RestaurantValidator;
 import com.astar.eattable.user.model.User;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -27,6 +22,7 @@ public class RestaurantCommandService {
     private final BusinessHoursRepository businessHoursRepository;
     private final MenuSectionRepository menuSectionRepository;
     private final MenuRepository menuRepository;
+    private final ClosedPeriodRepository closedPeriodRepository;
     private final RestaurantValidator restaurantValidator;
     private final ApplicationEventPublisher publisher;
 
@@ -128,6 +124,28 @@ public class RestaurantCommandService {
         menu.update(command);
 
         publisher.publishEvent(new MenuUpdateEvent(menu.getRestaurant().getId(), menu.getMenuSection().getId(), menuId, command, currentUser));
+    }
+
+    @Transactional
+    public void createClosedPeriod(Long restaurantId, ClosedPeriodCreateCommand command, User currentUser) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
+        restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
+
+        List<ClosedPeriod> closedPeriods = closedPeriodRepository.findAllByRestaurantId(restaurantId);
+        restaurantValidator.validateNoOverlapClosedPeriod(closedPeriods, command.getStartDate(), command.getEndDate(), restaurantId);
+        restaurantValidator.validateStartDateNotBeforeToday(command.getStartDate());
+        ClosedPeriod closedPeriod = closedPeriodRepository.save(command.toEntity(restaurant));
+
+        publisher.publishEvent(new ClosedPeriodCreateEvent(restaurantId, closedPeriod.getId(), command, currentUser));
+    }
+
+    @Transactional
+    public void deleteClosedPeriod(Long closedPeriodId, User currentUser) {
+        ClosedPeriod closedPeriod = closedPeriodRepository.findById(closedPeriodId).orElseThrow(() -> new ClosedPeriodNotFoundException(closedPeriodId));
+        restaurantValidator.validateRestaurantOwner(closedPeriod.getRestaurant(), currentUser.getId());
+        closedPeriodRepository.delete(closedPeriod);
+
+        publisher.publishEvent(new ClosedPeriodDeleteEvent(closedPeriod.getRestaurant().getId(), closedPeriodId, currentUser));
     }
 
     private void validateRestaurantAlreadyExists(String name, String address) {

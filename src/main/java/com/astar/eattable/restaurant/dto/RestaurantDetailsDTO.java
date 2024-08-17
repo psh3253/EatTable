@@ -24,20 +24,20 @@ public class RestaurantDetailsDTO {
     private final List<BusinessHoursDTO> businessHours;
     private final Map<Long, MenuSectionDTO> menuSections;
 
-    public RestaurantDetailsDTO(RestaurantDetailsDocument restaurantDetailsDocument) {
-        this.id = restaurantDetailsDocument.getId();
-        this.name = restaurantDetailsDocument.getName();
-        this.description = restaurantDetailsDocument.getDescription();
-        this.imageUrl = restaurantDetailsDocument.getImageUrl();
-        this.categoryName = restaurantDetailsDocument.getCategoryName();
-        this.phone = restaurantDetailsDocument.getPhone();
-        this.address = restaurantDetailsDocument.getAddress();
-        this.reviewScore = restaurantDetailsDocument.getReviewScore();
-        this.reviewCount = restaurantDetailsDocument.getReviewCount();
-        this.businessHours = restaurantDetailsDocument.getBusinessHours().stream()
+    public RestaurantDetailsDTO(RestaurantDetailsDocument document) {
+        this.id = document.getId();
+        this.name = document.getName();
+        this.description = document.getDescription();
+        this.imageUrl = document.getImageUrl();
+        this.categoryName = document.getCategoryName();
+        this.phone = document.getPhone();
+        this.address = document.getAddress();
+        this.reviewScore = document.getReviewScore();
+        this.reviewCount = document.getReviewCount();
+        this.businessHours = document.getBusinessHours().stream()
                 .map(BusinessHoursDTO::new)
                 .toList();
-        this.menuSections = restaurantDetailsDocument.getMenuSections().entrySet().stream()
+        this.menuSections = document.getMenuSections().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> new MenuSectionDTO(entry.getValue())));
     }
 }

@@ -1,15 +1,14 @@
 package com.astar.eattable.restaurant.service;
 
+import com.astar.eattable.restaurant.document.ClosedPeriodDocument;
 import com.astar.eattable.restaurant.document.RestaurantDetailsDocument;
 import com.astar.eattable.restaurant.document.RestaurantListDocument;
+import com.astar.eattable.restaurant.dto.ClosedPeriodListDTO;
 import com.astar.eattable.restaurant.dto.RestaurantDetailsDTO;
 import com.astar.eattable.restaurant.dto.RestaurantListDTO;
 import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
 import com.astar.eattable.restaurant.payload.*;
-import com.astar.eattable.restaurant.repository.MenuRepository;
-import com.astar.eattable.restaurant.repository.MenuSectionRepository;
-import com.astar.eattable.restaurant.repository.RestaurantDetailsMongoRepository;
-import com.astar.eattable.restaurant.repository.RestaurantListMongoRepository;
+import com.astar.eattable.restaurant.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,10 +18,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class RestaurantQueryService {
-    private final MenuSectionRepository menuSectionRepository;
-    private final MenuRepository menuRepository;
     private final RestaurantListMongoRepository restaurantListMongoRepository;
     private final RestaurantDetailsMongoRepository restaurantDetailsMongoRepository;
+    private final ClosedPeriodMongoRepository closedPeriodMongoRepository;
 
     @Value("${restaurant.search.radius.km}")
     private double searchRadiusKm;
@@ -97,5 +95,19 @@ public class RestaurantQueryService {
         RestaurantDetailsDocument restaurantDetailsDocument = restaurantDetailsMongoRepository.findById(payload.getRestaurantId()).orElseThrow(() -> new RestaurantNotFoundException(payload.getRestaurantId()));
         restaurantDetailsDocument.updateMenu(payload);
         restaurantDetailsMongoRepository.save(restaurantDetailsDocument);
+    }
+
+    public void createClosedPeriod(ClosedPeriodCreateEventPayload payload) {
+        ClosedPeriodDocument closedPeriodDocument = new ClosedPeriodDocument(payload);
+        closedPeriodMongoRepository.save(closedPeriodDocument);
+    }
+
+    public void deleteClosedPeriod(ClosedPeriodDeleteEventPayload payload) {
+        closedPeriodMongoRepository.deleteById(payload.getClosedPeriodId());
+    }
+
+    public List<ClosedPeriodListDTO> getClosedPeriods(Long restaurantId) {
+        List<ClosedPeriodDocument> closedPeriodDocuments = closedPeriodMongoRepository.findAllByRestaurantId(restaurantId);
+        return closedPeriodDocuments.stream().map(ClosedPeriodListDTO::new).toList();
     }
 }

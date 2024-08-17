@@ -17,14 +17,14 @@ public class RestaurantListDTO {
     private final Double reviewScore;
     private final Long reviewCount;
 
-    public RestaurantListDTO(RestaurantListDocument restaurantListDocument) {
-        this.id = restaurantListDocument.getId();
-        this.name = restaurantListDocument.getName();
-        this.imageUrl = restaurantListDocument.getImageUrl();
-        this.categoryName = restaurantListDocument.getCategoryName();
-        this.phone = restaurantListDocument.getPhone();
-        this.address = restaurantListDocument.getAddress();
-        this.reviewScore = restaurantListDocument.getReviewScore();
-        this.reviewCount = restaurantListDocument.getReviewCount();
+    public RestaurantListDTO(RestaurantListDocument document) {
+        this.id = document.getId();
+        this.name = document.getName();
+        this.imageUrl = document.getImageUrl();
+        this.categoryName = document.getCategoryName();
+        this.phone = document.getPhone();
+        this.address = document.getAddress();
+        this.reviewScore = document.getReviewScore();
+        this.reviewCount = document.getReviewCount();
     }
 }

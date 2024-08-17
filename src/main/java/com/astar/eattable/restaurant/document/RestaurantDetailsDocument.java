@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 @Getter
 @Document(collection = "restaurant_details")
 public class RestaurantDetailsDocument {
-    List<BusinessHoursDocument> businessHours;
-    Map<Long, MenuSectionDocument> menuSections;
     @Id
     private Long id;
     private String name;
@@ -36,6 +34,8 @@ public class RestaurantDetailsDocument {
     private GeoJsonPoint location;
     private Double reviewScore = 0.0;
     private Long reviewCount = 0L;
+    List<BusinessHoursDocument> businessHours;
+    Map<Long, MenuSectionDocument> menuSections;
 
     public RestaurantDetailsDocument(RestaurantCreateEventPayload payload) {
         this.id = payload.getRestaurantId();
