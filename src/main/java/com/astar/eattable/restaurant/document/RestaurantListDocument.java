@@ -2,10 +2,10 @@ package com.astar.eattable.restaurant.document;
 
 import com.astar.eattable.restaurant.command.RestaurantUpdateCommand;
 import com.astar.eattable.restaurant.payload.RestaurantCreateEventPayload;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;

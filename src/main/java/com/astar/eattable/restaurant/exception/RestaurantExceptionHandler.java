@@ -13,7 +13,7 @@ public class RestaurantExceptionHandler {
         return ResponseEntity.badRequest().body(new ErrorResponseDTO(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
     }
 
-    @ExceptionHandler({RestaurantNotFoundException.class, BusinessHoursNotFoundException.class, MenuSectionNotFoundException.class, MenuNotFoundException.class})
+    @ExceptionHandler({RestaurantNotFoundException.class, BusinessHoursNotFoundException.class, MenuSectionNotFoundException.class, MenuNotFoundException.class, MenuSectionMapNotFoundException.class, ClosedPeriodNotFoundException.class})
     public ResponseEntity<ErrorResponseDTO> handleRestaurantNotFoundException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseDTO(HttpStatus.NOT_FOUND.value(), e.getMessage()));
     }

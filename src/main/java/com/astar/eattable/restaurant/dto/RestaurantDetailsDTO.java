@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Getter
@@ -22,7 +20,6 @@ public class RestaurantDetailsDTO {
     private final Double reviewScore;
     private final Long reviewCount;
     private final List<BusinessHoursDTO> businessHours;
-    private final Map<Long, MenuSectionDTO> menuSections;
 
     public RestaurantDetailsDTO(RestaurantDetailsDocument document) {
         this.id = document.getId();
@@ -37,7 +34,5 @@ public class RestaurantDetailsDTO {
         this.businessHours = document.getBusinessHours().stream()
                 .map(BusinessHoursDTO::new)
                 .toList();
-        this.menuSections = document.getMenuSections().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> new MenuSectionDTO(entry.getValue())));
     }
 }

@@ -2,6 +2,7 @@ package com.astar.eattable.restaurant.controller;
 
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.dto.ClosedPeriodListDTO;
+import com.astar.eattable.restaurant.dto.MenuSectionDTO;
 import com.astar.eattable.restaurant.dto.RestaurantDetailsDTO;
 import com.astar.eattable.restaurant.dto.RestaurantListDTO;
 import com.astar.eattable.restaurant.service.RestaurantCommandService;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/restaurants")
@@ -83,6 +85,11 @@ public class RestaurantController {
     @PutMapping("/{restaurantId}/menu-sections/{menuSectionId}/menus/{menuId}")
     public void updateMenu(@PathVariable Long restaurantId, @PathVariable Long menuSectionId, @PathVariable Long menuId, @Valid @RequestBody MenuUpdateCommand command, @CurrentUser User currentUser) throws JsonProcessingException {
         restaurantCommandService.updateMenu(menuId, command, currentUser);
+    }
+
+    @GetMapping("/{restaurantId}/menu-sections")
+    public ResponseEntity<Map<Long, MenuSectionDTO>> getMenuSections(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(restaurantQueryService.getMenuSections(restaurantId));
     }
 
     @PostMapping("/{restaurantId}/closed-periods")

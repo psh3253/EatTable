@@ -12,8 +12,8 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MenuSectionDocument {
-    Map<Long, MenuDocument> menus;
     private String name;
+    private Map<Long, MenuDocument> menus;
 
     public MenuSectionDocument(MenuSectionCreateEventPayload payload) {
         this.name = payload.getCommand().getName();

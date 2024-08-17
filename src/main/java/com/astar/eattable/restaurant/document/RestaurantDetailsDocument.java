@@ -2,19 +2,17 @@ package com.astar.eattable.restaurant.document;
 
 import com.astar.eattable.restaurant.command.BusinessHoursUpdateCommand;
 import com.astar.eattable.restaurant.command.RestaurantUpdateCommand;
-import com.astar.eattable.restaurant.payload.*;
-import jakarta.persistence.Id;
+import com.astar.eattable.restaurant.payload.RestaurantCreateEventPayload;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
@@ -34,8 +32,7 @@ public class RestaurantDetailsDocument {
     private GeoJsonPoint location;
     private Double reviewScore = 0.0;
     private Long reviewCount = 0L;
-    List<BusinessHoursDocument> businessHours;
-    Map<Long, MenuSectionDocument> menuSections;
+    private List<BusinessHoursDocument> businessHours;
 
     public RestaurantDetailsDocument(RestaurantCreateEventPayload payload) {
         this.id = payload.getRestaurantId();
@@ -47,7 +44,6 @@ public class RestaurantDetailsDocument {
         this.address = payload.getCommand().getAddress();
         this.location = new GeoJsonPoint(payload.getCommand().getLongitude(), payload.getCommand().getLatitude());
         this.businessHours = payload.getCommand().getBusinessHours().stream().map(BusinessHoursDocument::new).collect(Collectors.toList());
-        this.menuSections = new HashMap<>();
     }
 
     public void updateRestaurant(RestaurantUpdateCommand command) {
@@ -69,35 +65,5 @@ public class RestaurantDetailsDocument {
 
     public void updateBusinessHours(BusinessHoursUpdateCommand command) {
         this.businessHours = command.getBusinessHours().stream().map(BusinessHoursDocument::new).collect(Collectors.toList());
-    }
-
-    public void createMenuSection(MenuSectionCreateEventPayload payload) {
-        MenuSectionDocument menuSectionDocument = new MenuSectionDocument(payload);
-        menuSections.put(payload.getMenuSectionId(), menuSectionDocument);
-    }
-
-    public void deleteMenuSection(MenuSectionDeleteEventPayload payload) {
-        menuSections.remove(payload.getMenuSectionId());
-    }
-
-    public void updateMenuSection(MenuSectionUpdateEventPayload payload) {
-        MenuSectionDocument menuSectionDocument = menuSections.get(payload.getMenuSectionId());
-        menuSectionDocument.update(payload);
-        menuSections.put(payload.getMenuSectionId(), menuSectionDocument);
-    }
-
-    public void createMenu(MenuCreateEventPayload payload) {
-        MenuSectionDocument menuSectionDocument = menuSections.get(payload.getMenuSectionId());
-        menuSectionDocument.createMenu(payload);
-    }
-
-    public void deleteMenu(MenuDeleteEventPayload payload) {
-        MenuSectionDocument menuSectionDocument = menuSections.get(payload.getMenuSectionId());
-        menuSectionDocument.deleteMenu(payload);
-    }
-
-    public void updateMenu(MenuUpdateEventPayload payload) {
-        MenuSectionDocument menuSectionDocument = menuSections.get(payload.getMenuSectionId());
-        menuSectionDocument.updateMenu(payload);
     }
 }

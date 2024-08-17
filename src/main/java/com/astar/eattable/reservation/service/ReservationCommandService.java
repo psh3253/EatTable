@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class ReservationService {
+public class ReservationCommandService {
     private final RestaurantTableRepository restaurantTableRepository;
     private final RestaurantRepository restaurantRepository;
     private final BusinessHoursRepository businessHoursRepository;
@@ -45,8 +45,11 @@ public class ReservationService {
         restaurantTableRepository.saveAll(restaurantTables);
     }
 
-    private boolean canCreateTimeSlot(LocalTime startTime, LocalTime lastTime, int reservationDuration) {
-        return startTime.plusMinutes(reservationDuration).isBefore(lastTime) || startTime.plusMinutes(reservationDuration).equals(lastTime);
+    private boolean isBreakTime(LocalTime startTime, LocalTime breakStartTime, LocalTime breakEndTime) {
+        if(breakStartTime != null && breakEndTime != null) {
+            return startTime.isAfter(breakStartTime) && startTime.isBefore(breakEndTime) || startTime.equals(breakStartTime);
+        }
+        return false;
     }
 
     @Transactional
@@ -57,16 +60,23 @@ public class ReservationService {
         Map<Day, BusinessHours> businessHoursMap = businessHours.stream().collect(Collectors.toMap(BusinessHours::getDay, businessHour -> businessHour));
         List<TableAvailability> tableAvailabilities = new ArrayList<>();
         LocalDate date = LocalDate.now();
+        Integer reservationDuration = restaurant.getReservationDuration();
 
         for (int i = 0; i < 30; i++) {
             LocalTime startTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getStartTime();
             LocalTime lastTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getLastOrderTime() != null ? businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getLastOrderTime() : businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getEndTime();
-            while (canCreateTimeSlot(startTime, lastTime, restaurant.getReservationDuration())) {
+            LocalTime breakStartTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getBreakStartTime();
+            LocalTime breakEndTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getBreakEndTime();
+            while (startTime.plusMinutes(reservationDuration).isBefore(lastTime) || startTime.plusMinutes(reservationDuration).equals(lastTime)) {
+                if(isBreakTime(startTime, breakStartTime, breakEndTime)) {
+                    startTime = startTime.plusMinutes(30);
+                    continue;
+                }
                 for (RestaurantTable restaurantTable : restaurantTables) {
                     TableAvailability tableAvailability = TableAvailability.builder()
                             .date(date)
                             .startTime(startTime)
-                            .endTime(startTime.plusMinutes(restaurant.getReservationDuration()))
+                            .endTime(startTime.plusMinutes(reservationDuration))
                             .restaurant(restaurant)
                             .restaurantTable(restaurantTable)
                             .remainingTableCount(restaurantTable.getCount())

@@ -93,7 +93,9 @@ public class RestaurantEventListener {
     public void handleRestaurantEvent(ExternalEvent message) throws JsonProcessingException {
         switch (message.getEventType()) {
             case EventTypes.RESTAURANT_CREATED:
-                restaurantQueryService.createRestaurant(objectMapper.readValue(message.getPayload(), RestaurantCreateEventPayload.class));
+                RestaurantCreateEventPayload payload = objectMapper.readValue(message.getPayload(), RestaurantCreateEventPayload.class);
+                restaurantQueryService.createRestaurant(payload);
+                restaurantQueryService.initMenuSections(payload.getRestaurantId());
                 break;
             case EventTypes.RESTAURANT_DELETED:
                 restaurantQueryService.deleteRestaurant(objectMapper.readValue(message.getPayload(), RestaurantDeleteEventPayload.class));

@@ -1,19 +1,27 @@
 package com.astar.eattable.restaurant.service;
 
 import com.astar.eattable.restaurant.document.ClosedPeriodDocument;
+import com.astar.eattable.restaurant.document.MenuSectionMapDocument;
 import com.astar.eattable.restaurant.document.RestaurantDetailsDocument;
 import com.astar.eattable.restaurant.document.RestaurantListDocument;
 import com.astar.eattable.restaurant.dto.ClosedPeriodListDTO;
+import com.astar.eattable.restaurant.dto.MenuSectionDTO;
 import com.astar.eattable.restaurant.dto.RestaurantDetailsDTO;
 import com.astar.eattable.restaurant.dto.RestaurantListDTO;
+import com.astar.eattable.restaurant.exception.MenuSectionMapNotFoundException;
 import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
 import com.astar.eattable.restaurant.payload.*;
-import com.astar.eattable.restaurant.repository.*;
+import com.astar.eattable.restaurant.repository.ClosedPeriodMongoRepository;
+import com.astar.eattable.restaurant.repository.MenuSectionMapRepository;
+import com.astar.eattable.restaurant.repository.RestaurantDetailsMongoRepository;
+import com.astar.eattable.restaurant.repository.RestaurantListMongoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -21,6 +29,7 @@ public class RestaurantQueryService {
     private final RestaurantListMongoRepository restaurantListMongoRepository;
     private final RestaurantDetailsMongoRepository restaurantDetailsMongoRepository;
     private final ClosedPeriodMongoRepository closedPeriodMongoRepository;
+    private final MenuSectionMapRepository menuSectionMapRepository;
 
     @Value("${restaurant.search.radius.km}")
     private double searchRadiusKm;
@@ -61,40 +70,51 @@ public class RestaurantQueryService {
         return new RestaurantDetailsDTO(restaurantDetailsDocument);
     }
 
+    public void initMenuSections(Long restaurantId) {
+        MenuSectionMapDocument menuSectionMapDocument = new MenuSectionMapDocument(restaurantId);
+        menuSectionMapRepository.save(menuSectionMapDocument);
+    }
+
     public void createMenuSection(MenuSectionCreateEventPayload payload) {
-        RestaurantDetailsDocument restaurantDetailsDocument = restaurantDetailsMongoRepository.findById(payload.getRestaurantId()).orElseThrow(() -> new RestaurantNotFoundException(payload.getRestaurantId()));
-        restaurantDetailsDocument.createMenuSection(payload);
-        restaurantDetailsMongoRepository.save(restaurantDetailsDocument);
+        MenuSectionMapDocument menuSectionMapDocument = menuSectionMapRepository.findByRestaurantId(payload.getRestaurantId()).orElseThrow(() -> new MenuSectionMapNotFoundException(payload.getRestaurantId()));
+        menuSectionMapDocument.createMenuSection(payload);
+        menuSectionMapRepository.save(menuSectionMapDocument);
     }
 
     public void deleteMenuSection(MenuSectionDeleteEventPayload payload) {
-        RestaurantDetailsDocument restaurantDetailsDocument = restaurantDetailsMongoRepository.findById(payload.getRestaurantId()).orElseThrow(() -> new RestaurantNotFoundException(payload.getRestaurantId()));
-        restaurantDetailsDocument.deleteMenuSection(payload);
-        restaurantDetailsMongoRepository.save(restaurantDetailsDocument);
+        MenuSectionMapDocument menuSectionMapDocument = menuSectionMapRepository.findByRestaurantId(payload.getRestaurantId()).orElseThrow(() -> new MenuSectionMapNotFoundException(payload.getRestaurantId()));
+        menuSectionMapDocument.deleteMenuSection(payload);
+        menuSectionMapRepository.save(menuSectionMapDocument);
     }
 
     public void updateMenuSection(MenuSectionUpdateEventPayload payload) {
-        RestaurantDetailsDocument restaurantDetailsDocument = restaurantDetailsMongoRepository.findById(payload.getRestaurantId()).orElseThrow(() -> new RestaurantNotFoundException(payload.getRestaurantId()));
-        restaurantDetailsDocument.updateMenuSection(payload);
-        restaurantDetailsMongoRepository.save(restaurantDetailsDocument);
+        MenuSectionMapDocument menuSectionMapDocument = menuSectionMapRepository.findByRestaurantId(payload.getRestaurantId()).orElseThrow(() -> new MenuSectionMapNotFoundException(payload.getRestaurantId()));
+        menuSectionMapDocument.updateMenuSection(payload);
+        menuSectionMapRepository.save(menuSectionMapDocument);
     }
 
     public void createMenu(MenuCreateEventPayload payload) {
-        RestaurantDetailsDocument restaurantDetailsDocument = restaurantDetailsMongoRepository.findById(payload.getRestaurantId()).orElseThrow(() -> new RestaurantNotFoundException(payload.getRestaurantId()));
-        restaurantDetailsDocument.createMenu(payload);
-        restaurantDetailsMongoRepository.save(restaurantDetailsDocument);
+        MenuSectionMapDocument menuSectionMapDocument = menuSectionMapRepository.findByRestaurantId(payload.getRestaurantId()).orElseThrow(() -> new MenuSectionMapNotFoundException(payload.getRestaurantId()));
+        menuSectionMapDocument.createMenu(payload);
+        menuSectionMapRepository.save(menuSectionMapDocument);
     }
 
     public void deleteMenu(MenuDeleteEventPayload payload) {
-        RestaurantDetailsDocument restaurantDetailsDocument = restaurantDetailsMongoRepository.findById(payload.getRestaurantId()).orElseThrow(() -> new RestaurantNotFoundException(payload.getRestaurantId()));
-        restaurantDetailsDocument.deleteMenu(payload);
-        restaurantDetailsMongoRepository.save(restaurantDetailsDocument);
+        MenuSectionMapDocument menuSectionMapDocument = menuSectionMapRepository.findByRestaurantId(payload.getRestaurantId()).orElseThrow(() -> new MenuSectionMapNotFoundException(payload.getRestaurantId()));
+        menuSectionMapDocument.deleteMenu(payload);
+        menuSectionMapRepository.save(menuSectionMapDocument);
     }
 
     public void updateMenu(MenuUpdateEventPayload payload) {
-        RestaurantDetailsDocument restaurantDetailsDocument = restaurantDetailsMongoRepository.findById(payload.getRestaurantId()).orElseThrow(() -> new RestaurantNotFoundException(payload.getRestaurantId()));
-        restaurantDetailsDocument.updateMenu(payload);
-        restaurantDetailsMongoRepository.save(restaurantDetailsDocument);
+        MenuSectionMapDocument menuSectionMapDocument = menuSectionMapRepository.findByRestaurantId(payload.getRestaurantId()).orElseThrow(() -> new MenuSectionMapNotFoundException(payload.getRestaurantId()));
+        menuSectionMapDocument.updateMenu(payload);
+        menuSectionMapRepository.save(menuSectionMapDocument);
+    }
+
+    public Map<Long, MenuSectionDTO> getMenuSections(Long restaurantId) {
+        MenuSectionMapDocument menuSectionMapDocument = menuSectionMapRepository.findByRestaurantId(restaurantId).orElseThrow(() -> new MenuSectionMapNotFoundException(restaurantId));
+        return menuSectionMapDocument.getMenuSections().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> new MenuSectionDTO(entry.getValue())));
     }
 
     public void createClosedPeriod(ClosedPeriodCreateEventPayload payload) {
