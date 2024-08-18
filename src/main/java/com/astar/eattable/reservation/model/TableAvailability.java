@@ -12,6 +12,9 @@ import java.time.LocalTime;
 @Getter
 @NoArgsConstructor
 @Entity
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"date", "start_time", "restaurant_id", "restaurant_table_id"})
+})
 public class TableAvailability {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

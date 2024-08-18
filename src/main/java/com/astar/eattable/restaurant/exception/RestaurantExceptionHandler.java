@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class RestaurantExceptionHandler {
     @ExceptionHandler({RestaurantAlreadyExistsException.class, MenuSectionAlreadyExistsException.class, MenuAlreadyExistsException.class, ClosedPeriodOverlapException.class, StartDateBeforeTodayException.class})
-    public ResponseEntity<ErrorResponseDTO> handleRestaurantAlreadyExistsException(RuntimeException e) {
+    public ResponseEntity<ErrorResponseDTO> handleBadRequestException(RuntimeException e) {
         return ResponseEntity.badRequest().body(new ErrorResponseDTO(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
     }
 
     @ExceptionHandler({RestaurantNotFoundException.class, BusinessHoursNotFoundException.class, MenuSectionNotFoundException.class, MenuNotFoundException.class, MenuSectionMapNotFoundException.class, ClosedPeriodNotFoundException.class})
-    public ResponseEntity<ErrorResponseDTO> handleRestaurantNotFoundException(RuntimeException e) {
+    public ResponseEntity<ErrorResponseDTO> handleNotFoundException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseDTO(HttpStatus.NOT_FOUND.value(), e.getMessage()));
     }
 
@@ -24,7 +24,7 @@ public class RestaurantExceptionHandler {
     }
 
     @ExceptionHandler({MenuSectionNotEmptyException.class})
-    public ResponseEntity<ErrorResponseDTO> handleMenuSectionNotEmptyException(RuntimeException e) {
+    public ResponseEntity<ErrorResponseDTO> handleConflictException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponseDTO(HttpStatus.CONFLICT.value(), e.getMessage()));
     }
 }

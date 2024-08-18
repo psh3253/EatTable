@@ -3,6 +3,7 @@ package com.astar.eattable.restaurant.listener;
 import com.astar.eattable.common.dto.EventTypes;
 import com.astar.eattable.common.model.ExternalEvent;
 import com.astar.eattable.common.service.EventService;
+import com.astar.eattable.reservation.service.ReservationQueryService;
 import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.payload.*;
 import com.astar.eattable.restaurant.service.RestaurantQueryService;
@@ -20,6 +21,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class RestaurantEventListener {
     private final RestaurantQueryService restaurantQueryService;
+    private final ReservationQueryService reservationQueryService;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
 
@@ -93,9 +95,10 @@ public class RestaurantEventListener {
     public void handleRestaurantEvent(ExternalEvent message) throws JsonProcessingException {
         switch (message.getEventType()) {
             case EventTypes.RESTAURANT_CREATED:
-                RestaurantCreateEventPayload payload = objectMapper.readValue(message.getPayload(), RestaurantCreateEventPayload.class);
-                restaurantQueryService.createRestaurant(payload);
-                restaurantQueryService.initMenuSections(payload.getRestaurantId());
+                RestaurantCreateEventPayload restaurantCreateEventPayload = objectMapper.readValue(message.getPayload(), RestaurantCreateEventPayload.class);
+                restaurantQueryService.createRestaurant(restaurantCreateEventPayload);
+                restaurantQueryService.initMenuSections(restaurantCreateEventPayload.getRestaurantId());
+                reservationQueryService.initMonthlyAvailability(restaurantCreateEventPayload.getRestaurantId());
                 break;
             case EventTypes.RESTAURANT_DELETED:
                 restaurantQueryService.deleteRestaurant(objectMapper.readValue(message.getPayload(), RestaurantDeleteEventPayload.class));
@@ -125,10 +128,14 @@ public class RestaurantEventListener {
                 restaurantQueryService.updateMenu(objectMapper.readValue(message.getPayload(), MenuUpdateEventPayload.class));
                 break;
             case EventTypes.CLOSED_PERIOD_CREATED:
-                restaurantQueryService.createClosedPeriod(objectMapper.readValue(message.getPayload(), ClosedPeriodCreateEventPayload.class));
+                ClosedPeriodCreateEventPayload closedPeriodCreateEventPayload = objectMapper.readValue(message.getPayload(), ClosedPeriodCreateEventPayload.class);
+                restaurantQueryService.createClosedPeriod(closedPeriodCreateEventPayload);
+                reservationQueryService.updateMonthlyAvailability(closedPeriodCreateEventPayload.getRestaurantId());
                 break;
             case EventTypes.CLOSED_PERIOD_DELETED:
-                restaurantQueryService.deleteClosedPeriod(objectMapper.readValue(message.getPayload(), ClosedPeriodDeleteEventPayload.class));
+                ClosedPeriodDeleteEventPayload closedPeriodDeleteEventPayload = objectMapper.readValue(message.getPayload(), ClosedPeriodDeleteEventPayload.class);
+                restaurantQueryService.deleteClosedPeriod(closedPeriodDeleteEventPayload);
+                reservationQueryService.updateMonthlyAvailability(closedPeriodDeleteEventPayload.getRestaurantId());
                 break;
         }
     }

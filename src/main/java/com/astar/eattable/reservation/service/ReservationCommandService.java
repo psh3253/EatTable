@@ -55,16 +55,17 @@ public class ReservationCommandService {
         List<BusinessHours> businessHours = businessHoursRepository.findAllByRestaurantId(restaurantId);
         Map<Day, BusinessHours> businessHoursMap = businessHours.stream().collect(Collectors.toMap(BusinessHours::getDay, businessHour -> businessHour));
         List<TableAvailability> tableAvailabilities = new ArrayList<>();
-        LocalDate date = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(31);
+        LocalDate currentDate = getTableAvailabilityLastDateNextDay(restaurantId);
         Integer reservationDuration = restaurant.getReservationDuration();
-        LocalTime startTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getStartTime();
-        LocalTime lastTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getLastOrderTime() != null ? businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getLastOrderTime() : businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getEndTime();
-        LocalTime breakStartTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getBreakStartTime();
-        LocalTime breakEndTime = businessHoursMap.get(Day.fromDayOfWeek(date.getDayOfWeek())).getBreakEndTime();
+        LocalTime startTime = businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getStartTime();
+        LocalTime lastTime = businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getLastOrderTime() != null ? businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getLastOrderTime() : businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getEndTime();
+        LocalTime breakStartTime = businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getBreakStartTime();
+        LocalTime breakEndTime = businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getBreakEndTime();
 
-        for (int i = 0; i < 30; i++) {
-            List<TableAvailability> dayTableAvailabilities = createDayTableAvailabilities(startTime, lastTime, breakStartTime, breakEndTime, reservationDuration, restaurantTables, date, restaurant);
-            date = date.plusDays(1);
+        while (currentDate.isBefore(endDate)) {
+            List<TableAvailability> dayTableAvailabilities = createDayTableAvailabilities(startTime, lastTime, breakStartTime, breakEndTime, reservationDuration, restaurantTables, currentDate, restaurant);
+            currentDate = currentDate.plusDays(1);
             tableAvailabilities.addAll(dayTableAvailabilities);
         }
         tableAvailabilityRepository.saveAll(tableAvailabilities);
@@ -84,6 +85,11 @@ public class ReservationCommandService {
             startTime = startTime.plusMinutes(30);
         }
         return dayTableAvailabilities;
+    }
+
+    @Transactional(readOnly = true)
+    public LocalDate getTableAvailabilityLastDateNextDay(Long restaurantId) {
+        return tableAvailabilityRepository.findFirstByRestaurantIdOrderByDateDesc(restaurantId).map(TableAvailability::getDate).orElse(LocalDate.now().minusDays(1)).plusDays(1);
     }
 
     @Transactional

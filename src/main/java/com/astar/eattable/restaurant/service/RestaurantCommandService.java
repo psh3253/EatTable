@@ -171,4 +171,8 @@ public class RestaurantCommandService {
             throw new MenuAlreadyExistsException(menuSectionId, name);
         }
     }
+
+    public List<Long> getAllRestaurantIds() {
+        return restaurantRepository.findAll().stream().map(Restaurant::getId).toList();
+    }
 }
