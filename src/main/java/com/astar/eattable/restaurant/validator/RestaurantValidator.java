@@ -1,7 +1,7 @@
 package com.astar.eattable.restaurant.validator;
 
 import com.astar.eattable.restaurant.exception.ClosedPeriodOverlapException;
-import com.astar.eattable.restaurant.exception.StartDateBeforeTodayException;
+import com.astar.eattable.restaurant.exception.ClosedPeriodPastException;
 import com.astar.eattable.restaurant.exception.UnauthorizedRestaurantAccessException;
 import com.astar.eattable.restaurant.model.ClosedPeriod;
 import com.astar.eattable.restaurant.model.Restaurant;
@@ -26,11 +26,11 @@ public class RestaurantValidator {
         });
     }
 
-    public void validateStartDateNotBeforeToday(String startDate) {
+    public void validateClosePeriodNotBeforeToday(String startDate) {
         LocalDate today = LocalDate.now();
         LocalDate start = LocalDate.parse(startDate);
         if (start.isBefore(today)) {
-            throw new StartDateBeforeTodayException(startDate);
+            throw new ClosedPeriodPastException(startDate);
         }
     }
 }

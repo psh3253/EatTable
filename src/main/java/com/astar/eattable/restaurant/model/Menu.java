@@ -57,4 +57,8 @@ public class Menu {
             this.imageUrl = command.getImageUrl();
         }
     }
+
+    public void setIdForTest(Long id) {
+        this.id = id;
+    }
 }

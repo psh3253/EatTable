@@ -41,4 +41,8 @@ public class ClosedPeriod {
         LocalDate end = LocalDate.parse(endDate);
         return !(this.endDate.isBefore(start) || this.startDate.isAfter(end));
     }
+
+    public void setIdForTest(Long id) {
+        this.id = id;
+    }
 }

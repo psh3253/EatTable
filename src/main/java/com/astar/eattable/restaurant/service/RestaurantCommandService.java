@@ -48,7 +48,7 @@ public class RestaurantCommandService {
 
     @Transactional
     public void updateRestaurant(Long restaurantId, RestaurantUpdateCommand command, User currentUser) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow();
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
         restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
         restaurant.update(command);
 
@@ -57,7 +57,7 @@ public class RestaurantCommandService {
 
     @Transactional
     public void updateBusinessHours(Long restaurantId, BusinessHoursUpdateCommand command, User currentUser) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow();
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
         restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
 
         command.getBusinessHours().forEach(businessHoursCommand -> {
@@ -130,10 +130,9 @@ public class RestaurantCommandService {
     public void createClosedPeriod(Long restaurantId, ClosedPeriodCreateCommand command, User currentUser) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
         restaurantValidator.validateRestaurantOwner(restaurant, currentUser.getId());
-
         List<ClosedPeriod> closedPeriods = closedPeriodRepository.findAllByRestaurantId(restaurantId);
         restaurantValidator.validateNoOverlapClosedPeriod(closedPeriods, command.getStartDate(), command.getEndDate(), restaurantId);
-        restaurantValidator.validateStartDateNotBeforeToday(command.getStartDate());
+        restaurantValidator.validateClosePeriodNotBeforeToday(command.getStartDate());
         ClosedPeriod closedPeriod = closedPeriodRepository.save(command.toEntity(restaurant));
 
         publisher.publishEvent(new ClosedPeriodCreateEvent(restaurantId, closedPeriod.getId(), command, currentUser));
@@ -167,7 +166,7 @@ public class RestaurantCommandService {
     }
 
     private void validateMenuAlreadyExists(Long menuSectionId, String name) {
-        if (menuRepository.existsByName(name)) {
+        if (menuRepository.existsByMenuSectionIdAndName(menuSectionId, name)) {
             throw new MenuAlreadyExistsException(menuSectionId, name);
         }
     }

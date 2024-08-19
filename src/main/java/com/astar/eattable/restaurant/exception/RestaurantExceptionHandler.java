@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class RestaurantExceptionHandler {
-    @ExceptionHandler({RestaurantAlreadyExistsException.class, MenuSectionAlreadyExistsException.class, MenuAlreadyExistsException.class, ClosedPeriodOverlapException.class, StartDateBeforeTodayException.class})
+    @ExceptionHandler({RestaurantAlreadyExistsException.class, MenuSectionAlreadyExistsException.class, MenuAlreadyExistsException.class, ClosedPeriodOverlapException.class, ClosedPeriodPastException.class})
     public ResponseEntity<ErrorResponseDTO> handleBadRequestException(RuntimeException e) {
         return ResponseEntity.badRequest().body(new ErrorResponseDTO(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
     }

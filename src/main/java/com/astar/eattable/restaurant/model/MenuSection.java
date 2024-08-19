@@ -31,4 +31,8 @@ public class MenuSection {
     public void update(MenuSectionUpdateCommand command) {
         this.name = command.getName();
     }
+
+    public void setIdForTest(Long id) {
+        this.id = id;
+    }
 }
