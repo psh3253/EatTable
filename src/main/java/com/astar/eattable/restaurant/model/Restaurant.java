@@ -80,7 +80,7 @@ public class Restaurant extends BaseTimeEntity {
         if (command.getName() != null) {
             this.name = command.getName();
         }
-        if(command.getDescription() != null) {
+        if (command.getDescription() != null) {
             this.description = command.getDescription();
         }
         if (command.getImageUrl() != null) {

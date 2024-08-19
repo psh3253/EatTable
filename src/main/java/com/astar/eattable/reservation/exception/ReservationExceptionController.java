@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ReservationExceptionController {
-    @ExceptionHandler({MonthlyAvailabilityNotFoundException.class})
+    @ExceptionHandler({MonthlyAvailabilityNotFoundException.class, TableAvailabilityNotFoundException.class})
     public ResponseEntity<ErrorResponseDTO> handleNotFoundException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseDTO(HttpStatus.NOT_FOUND.value(), e.getMessage()));
     }

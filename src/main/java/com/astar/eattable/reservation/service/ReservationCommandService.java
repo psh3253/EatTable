@@ -1,6 +1,7 @@
 package com.astar.eattable.reservation.service;
 
 import com.astar.eattable.common.dto.Day;
+import com.astar.eattable.common.service.CommonService;
 import com.astar.eattable.reservation.model.RestaurantTable;
 import com.astar.eattable.reservation.model.TableAvailability;
 import com.astar.eattable.reservation.repository.RestaurantTableRepository;
@@ -28,6 +29,7 @@ public class ReservationCommandService {
     private final RestaurantRepository restaurantRepository;
     private final BusinessHoursRepository businessHoursRepository;
     private final TableAvailabilityRepository tableAvailabilityRepository;
+    private final CommonService commonService;
 
     @Transactional
     public void initRestaurantTable(Long restaurantId) {
@@ -39,13 +41,6 @@ public class ReservationCommandService {
             restaurantTables.add(restaurantTable);
         }
         restaurantTableRepository.saveAll(restaurantTables);
-    }
-
-    private boolean isBreakTime(LocalTime startTime, LocalTime breakStartTime, LocalTime breakEndTime) {
-        if (breakStartTime != null && breakEndTime != null) {
-            return startTime.isAfter(breakStartTime) && startTime.isBefore(breakEndTime) || startTime.equals(breakStartTime);
-        }
-        return false;
     }
 
     @Transactional
@@ -74,7 +69,7 @@ public class ReservationCommandService {
     private List<TableAvailability> createDayTableAvailabilities(LocalTime startTime, LocalTime lastTime, LocalTime breakStartTime, LocalTime breakEndTime, Integer reservationDuration, List<RestaurantTable> restaurantTables, LocalDate date, Restaurant restaurant) {
         List<TableAvailability> dayTableAvailabilities = new ArrayList<>();
         while (startTime.plusMinutes(reservationDuration).isBefore(lastTime) || startTime.plusMinutes(reservationDuration).equals(lastTime)) {
-            if (isBreakTime(startTime, breakStartTime, breakEndTime)) {
+            if (commonService.isBreakTime(startTime, breakStartTime, breakEndTime)) {
                 startTime = startTime.plusMinutes(30);
                 continue;
             }

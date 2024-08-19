@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.times;
@@ -122,8 +123,8 @@ class RestaurantCommandServiceTest {
                 .build();
         menu.setIdForTest(1L);
         closedPeriod = ClosedPeriod.builder()
-                .startDate(LocalDate.of(2024,9,1))
-                .endDate(LocalDate.of(2024,9,7))
+                .startDate(LocalDate.of(2024, 9, 1))
+                .endDate(LocalDate.of(2024, 9, 7))
                 .reason("휴가")
                 .restaurant(restaurant)
                 .build();
@@ -626,7 +627,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 메뉴를 수정하면 메뉴가 수정된다.")
     void updateMenu_withValidInput_updatesMenu() {
         // given
-        MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000,"맛있는 햄버거", "수정된 이미지 URL");
+        MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000, "맛있는 햄버거", "수정된 이미지 URL");
         given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(menu.getRestaurant(), user.getId());
 
@@ -646,7 +647,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 메뉴를 수정하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void updateMenu_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
-        MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000,"맛있는 햄버거", "수정된 이미지 URL");
+        MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000, "맛있는 햄버거", "수정된 이미지 URL");
         given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
         willThrow(new UnauthorizedRestaurantAccessException(menu.getRestaurant().getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(menu.getRestaurant(), notOwnerUser.getId());
 
@@ -660,7 +661,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 메뉴를 수정하려고 하면 MenuNotFoundException 예외가 발생한다.")
     void updateMenu_withNotExistingMenu_throwsMenuNotFoundException() {
         // given
-        MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000,"맛있는 햄버거", "수정된 이미지 URL");
+        MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000, "맛있는 햄버거", "수정된 이미지 URL");
         given(menuRepository.findById(1L)).willReturn(Optional.empty());
 
         // when & then
@@ -721,8 +722,8 @@ class RestaurantCommandServiceTest {
         // given
         ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2024-09-01", "2024-09-07", "휴가");
         ClosedPeriod overlappedClosedPeriod = ClosedPeriod.builder()
-                .startDate(LocalDate.of(2024,9,3))
-                .endDate(LocalDate.of(2024,9,10))
+                .startDate(LocalDate.of(2024, 9, 3))
+                .endDate(LocalDate.of(2024, 9, 10))
                 .reason("휴가")
                 .restaurant(restaurant)
                 .build();
@@ -745,7 +746,7 @@ class RestaurantCommandServiceTest {
         ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2022-09-01", "2022-09-07", "휴가");
         given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
-        willThrow(new ClosedPeriodPastException( command.getStartDate())).given(restaurantValidator).validateClosePeriodNotBeforeToday(command.getStartDate());
+        willThrow(new ClosedPeriodPastException(command.getStartDate())).given(restaurantValidator).validateClosePeriodNotBeforeToday(command.getStartDate());
 
         // when & then
         assertThrows(ClosedPeriodPastException.class, () -> restaurantCommandService.createClosedPeriod(1L, command, user));

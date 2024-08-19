@@ -1,7 +1,6 @@
 package com.astar.eattable.reservation.listener;
 
 import com.astar.eattable.reservation.service.ReservationCommandService;
-import com.astar.eattable.reservation.service.ReservationQueryService;
 import com.astar.eattable.restaurant.event.RestaurantCreateEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;

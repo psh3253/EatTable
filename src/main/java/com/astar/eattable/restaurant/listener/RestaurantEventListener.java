@@ -99,6 +99,7 @@ public class RestaurantEventListener {
                 restaurantQueryService.createRestaurant(restaurantCreateEventPayload);
                 restaurantQueryService.initMenuSections(restaurantCreateEventPayload.getRestaurantId());
                 reservationQueryService.initMonthlyAvailability(restaurantCreateEventPayload.getRestaurantId());
+                reservationQueryService.initTableAvailability(restaurantCreateEventPayload.getRestaurantId());
                 break;
             case EventTypes.RESTAURANT_DELETED:
                 restaurantQueryService.deleteRestaurant(objectMapper.readValue(message.getPayload(), RestaurantDeleteEventPayload.class));
