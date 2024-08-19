@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;
 
-public interface MenuSectionMapRepository extends MongoRepository<MenuSectionMapDocument, Long> {
+public interface MenuSectionMapMongoRepository extends MongoRepository<MenuSectionMapDocument, Long> {
     Optional<MenuSectionMapDocument> findByRestaurantId(Long restaurantId);
 }

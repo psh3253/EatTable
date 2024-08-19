@@ -10,8 +10,10 @@ import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
 import com.astar.eattable.restaurant.model.BusinessHours;
 import com.astar.eattable.restaurant.model.Restaurant;
 import com.astar.eattable.restaurant.repository.BusinessHoursRepository;
+import com.astar.eattable.restaurant.repository.ClosedPeriodRepository;
 import com.astar.eattable.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +31,15 @@ public class ReservationCommandService {
     private final RestaurantRepository restaurantRepository;
     private final BusinessHoursRepository businessHoursRepository;
     private final TableAvailabilityRepository tableAvailabilityRepository;
+    private final ClosedPeriodRepository closedPeriodRepository;
     private final CommonService commonService;
+
+    @Value("${max.reservation.period.days}")
+    private int MAX_RESERVATION_PERIOD_DAYS;
+
+    @Value("${reservation.interval.minutes}")
+    private int RESERVATION_INTERVAL_MINUTES;
+
 
     @Transactional
     public void initRestaurantTable(Long restaurantId) {
@@ -50,18 +60,24 @@ public class ReservationCommandService {
         List<BusinessHours> businessHours = businessHoursRepository.findAllByRestaurantId(restaurantId);
         Map<Day, BusinessHours> businessHoursMap = businessHours.stream().collect(Collectors.toMap(BusinessHours::getDay, businessHour -> businessHour));
         List<TableAvailability> tableAvailabilities = new ArrayList<>();
-        LocalDate endDate = LocalDate.now().plusDays(31);
+        LocalDate endDate = LocalDate.now().plusDays(MAX_RESERVATION_PERIOD_DAYS);
         LocalDate currentDate = getTableAvailabilityLastDateNextDay(restaurantId);
         Integer reservationDuration = restaurant.getReservationDuration();
-        LocalTime startTime = businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getStartTime();
-        LocalTime lastTime = businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getLastOrderTime() != null ? businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getLastOrderTime() : businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getEndTime();
-        LocalTime breakStartTime = businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getBreakStartTime();
-        LocalTime breakEndTime = businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getBreakEndTime();
 
         while (currentDate.isBefore(endDate)) {
+            if (isDateInClosedPeriod(restaurantId, currentDate.toString())) {
+                currentDate = currentDate.plusDays(1);
+                continue;
+            }
+            Day day = Day.fromDayOfWeek(currentDate.getDayOfWeek());
+            LocalTime startTime = businessHoursMap.get(day).getStartTime();
+            LocalTime lastTime = businessHoursMap.get(day).getLastOrderTime() != null ? businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getLastOrderTime() : businessHoursMap.get(Day.fromDayOfWeek(currentDate.getDayOfWeek())).getEndTime();
+            LocalTime breakStartTime = businessHoursMap.get(day).getBreakStartTime();
+            LocalTime breakEndTime = businessHoursMap.get(day).getBreakEndTime();
+
             List<TableAvailability> dayTableAvailabilities = createDayTableAvailabilities(startTime, lastTime, breakStartTime, breakEndTime, reservationDuration, restaurantTables, currentDate, restaurant);
-            currentDate = currentDate.plusDays(1);
             tableAvailabilities.addAll(dayTableAvailabilities);
+            currentDate = currentDate.plusDays(1);
         }
         tableAvailabilityRepository.saveAll(tableAvailabilities);
     }
@@ -70,21 +86,26 @@ public class ReservationCommandService {
         List<TableAvailability> dayTableAvailabilities = new ArrayList<>();
         while (startTime.plusMinutes(reservationDuration).isBefore(lastTime) || startTime.plusMinutes(reservationDuration).equals(lastTime)) {
             if (commonService.isBreakTime(startTime, breakStartTime, breakEndTime)) {
-                startTime = startTime.plusMinutes(30);
+                startTime = startTime.plusMinutes(RESERVATION_INTERVAL_MINUTES);
                 continue;
             }
             for (RestaurantTable restaurantTable : restaurantTables) {
                 TableAvailability tableAvailability = TableAvailability.builder().date(date).startTime(startTime).endTime(startTime.plusMinutes(reservationDuration)).restaurant(restaurant).restaurantTable(restaurantTable).remainingTableCount(restaurantTable.getCount()).build();
                 dayTableAvailabilities.add(tableAvailability);
             }
-            startTime = startTime.plusMinutes(30);
+            startTime = startTime.plusMinutes(RESERVATION_INTERVAL_MINUTES);
         }
         return dayTableAvailabilities;
     }
 
+    private boolean isDateInClosedPeriod(Long restaurantId, String date) {
+        return closedPeriodRepository.findClosedPeriod(restaurantId, date).isPresent();
+    }
+
     @Transactional(readOnly = true)
     public LocalDate getTableAvailabilityLastDateNextDay(Long restaurantId) {
-        return tableAvailabilityRepository.findFirstByRestaurantIdOrderByDateDesc(restaurantId).map(TableAvailability::getDate).orElse(LocalDate.now().minusDays(1)).plusDays(1);
+        LocalDate lastDate = tableAvailabilityRepository.findFirstByRestaurantIdOrderByDateDesc(restaurantId).map(TableAvailability::getDate).orElse(LocalDate.now());
+        return lastDate.isBefore(LocalDate.now()) ? LocalDate.now() : lastDate.plusDays(1);
     }
 
     @Transactional

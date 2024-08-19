@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface TableAvailabilityMongoRepository extends MongoRepository<TableAvailabilityDocument, String> {
     Optional<TableAvailabilityDocument> findByRestaurantIdAndDateAndCapacity(Long restaurantId, String date, Integer capacity);
+
+    Optional<TableAvailabilityDocument> findTopByRestaurantIdOrderByDateDesc(Long restaurantId);
 }
