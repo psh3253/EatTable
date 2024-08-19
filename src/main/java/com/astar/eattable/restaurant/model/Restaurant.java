@@ -80,6 +80,9 @@ public class Restaurant extends BaseTimeEntity {
         if (command.getName() != null) {
             this.name = command.getName();
         }
+        if(command.getDescription() != null) {
+            this.description = command.getDescription();
+        }
         if (command.getImageUrl() != null) {
             this.imageUrl = command.getImageUrl();
         }
@@ -110,5 +113,9 @@ public class Restaurant extends BaseTimeEntity {
 
     public void close() {
         this.isAvailable = false;
+    }
+
+    public void setIdForTest(Long id) {
+        this.id = id;
     }
 }

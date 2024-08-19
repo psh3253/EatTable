@@ -49,4 +49,8 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
         this.phoneNumber = phoneNumber;
     }
+
+    public void setIdForTest(Long id) {
+        this.id = id;
+    }
 }
