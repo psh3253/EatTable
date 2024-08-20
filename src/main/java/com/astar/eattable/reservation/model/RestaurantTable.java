@@ -31,4 +31,8 @@ public class RestaurantTable {
         this.count = count;
         this.restaurant = restaurant;
     }
+
+    public void updateCount(Integer count) {
+        this.count = count;
+    }
 }

@@ -45,4 +45,12 @@ public class TableAvailability {
         this.restaurantTable = restaurantTable;
         this.remainingTableCount = remainingTableCount;
     }
+
+    public void updateRemainingTableCount(Integer count) {
+        this.remainingTableCount = count;
+    }
+
+    public void decreaseRemainingTableCount() {
+        this.remainingTableCount--;
+    }
 }

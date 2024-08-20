@@ -11,4 +11,12 @@ public class TimeAvailabilityDocument {
     private String time;
 
     private Integer remainCount;
+
+    public void decreaseRemainCount() {
+        this.remainCount--;
+    }
+
+    public void updateRemainCount(Integer count) {
+        this.remainCount = count;
+    }
 }

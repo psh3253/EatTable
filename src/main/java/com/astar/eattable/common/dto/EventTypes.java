@@ -13,4 +13,6 @@ public class EventTypes {
     public static final String MENU_UPDATED = "MenuUpdated";
     public static final String CLOSED_PERIOD_CREATED = "ClosedPeriodCreated";
     public static final String CLOSED_PERIOD_DELETED = "ClosedPeriodDeleted";
+    public static final String TABLE_COUNT_UPDATED = "TableCountUpdated";
+    public static final String RESERVATION_CREATED = "ReservationCreated";
 }

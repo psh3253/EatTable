@@ -3,13 +3,18 @@ package com.astar.eattable.reservation.service;
 import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.common.service.CommonService;
 import com.astar.eattable.reservation.document.MonthlyAvailabilityDocument;
+import com.astar.eattable.reservation.document.ReservationDocument;
 import com.astar.eattable.reservation.document.TableAvailabilityDocument;
 import com.astar.eattable.reservation.document.TimeAvailabilityDocument;
 import com.astar.eattable.reservation.dto.MonthlyAvailabilityDTO;
 import com.astar.eattable.reservation.dto.TableAvailabilityDTO;
 import com.astar.eattable.reservation.exception.MonthlyAvailabilityNotFoundException;
 import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
+import com.astar.eattable.reservation.exception.TimeAvailabilityNotFoundException;
+import com.astar.eattable.reservation.payload.ReservationCreatePayload;
+import com.astar.eattable.reservation.payload.TableCountUpdatePayload;
 import com.astar.eattable.reservation.repository.MonthlyAvailabilityMongoRepository;
+import com.astar.eattable.reservation.repository.ReservationMongoRepository;
 import com.astar.eattable.reservation.repository.TableAvailabilityMongoRepository;
 import com.astar.eattable.restaurant.document.BusinessHoursDocument;
 import com.astar.eattable.restaurant.document.RestaurantDetailsDocument;
@@ -35,6 +40,7 @@ public class ReservationQueryService {
     private final ClosedPeriodMongoRepository closedPeriodMongoRepository;
     private final RestaurantDetailsMongoRepository restaurantDetailsMongoRepository;
     private final TableAvailabilityMongoRepository tableAvailabilityMongoRepository;
+    private final ReservationMongoRepository reservationMongoRepository;
     private final CommonService commonService;
 
     @Value("${max.reservation.period.days}")
@@ -140,5 +146,29 @@ public class ReservationQueryService {
     public List<TableAvailabilityDTO> getTableAvailability(Long restaurantId, String date, Integer capacity) {
         return tableAvailabilityMongoRepository.findByRestaurantIdAndDateAndCapacity(restaurantId, date, capacity).orElseThrow(() -> new TableAvailabilityNotFoundException(restaurantId, date, capacity))
                 .getTimeAvailabilityDocuments().stream().map(TableAvailabilityDTO::new).collect(Collectors.toList());
+    }
+
+    public void updateTableAvailability(TableCountUpdatePayload payload) {
+        List<TableAvailabilityDocument> tableAvailabilityDocuments = tableAvailabilityMongoRepository.findAllByRestaurantIdAndCapacity(payload.getRestaurantId(), payload.getCommand().getCapacity());
+        for(TableAvailabilityDocument tableAvailabilityDocument : tableAvailabilityDocuments) {
+            for(TimeAvailabilityDocument timeAvailabilityDocument : tableAvailabilityDocument.getTimeAvailabilityDocuments()) {
+                Integer usedCount = reservationMongoRepository.countAllByRestaurantIdAndDateAndTimeAndCapacity(payload.getRestaurantId(), tableAvailabilityDocument.getDate(), timeAvailabilityDocument.getTime(), payload.getCommand().getCapacity());
+                timeAvailabilityDocument.updateRemainCount(payload.getCommand().getCount() - usedCount);
+            }
+        }
+        tableAvailabilityMongoRepository.saveAll(tableAvailabilityDocuments);
+    }
+
+    public void createReservation(ReservationCreatePayload payload) {
+        ReservationDocument reservationDocument = new ReservationDocument(payload);
+        reservationMongoRepository.save(reservationDocument);
+
+        TableAvailabilityDocument tableAvailabilityDocument = tableAvailabilityMongoRepository.findByRestaurantIdAndDateAndCapacity(payload.getCommand().getRestaurantId(), payload.getCommand().getDate(), payload.getCommand().getCapacity())
+                .orElseThrow(() -> new TableAvailabilityNotFoundException(payload.getCommand().getRestaurantId(), payload.getCommand().getDate(), payload.getCommand().getCapacity()));
+        TimeAvailabilityDocument timeAvailabilityDocument = tableAvailabilityDocument.getTimeAvailabilityDocuments().stream()
+                .filter(timeAvailability -> timeAvailability.getTime().equals(payload.getCommand().getTime())).findFirst()
+                .orElseThrow(() -> new TimeAvailabilityNotFoundException(payload.getCommand().getRestaurantId(), payload.getCommand().getDate(), payload.getCommand().getTime(), payload.getCommand().getCapacity()));
+        timeAvailabilityDocument.decreaseRemainCount();
+        tableAvailabilityMongoRepository.save(tableAvailabilityDocument);
     }
 }

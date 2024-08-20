@@ -19,7 +19,7 @@ public class RestaurantExceptionHandler {
     }
 
     @ExceptionHandler({UnauthorizedRestaurantAccessException.class})
-    public ResponseEntity<ErrorResponseDTO> handleUnauthorizedRestaurantAccessException(RuntimeException e) {
+    public ResponseEntity<ErrorResponseDTO> handleForbiddenException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponseDTO(HttpStatus.FORBIDDEN.value(), e.getMessage()));
     }
 
