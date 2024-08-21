@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ReservationExceptionController {
-    @ExceptionHandler({MonthlyAvailabilityNotFoundException.class, TableAvailabilityNotFoundException.class, RestaurantTableNotFoundException.class, TimeAvailabilityNotFoundException.class})
+    @ExceptionHandler({MonthlyAvailabilityNotFoundException.class, TableAvailabilityNotFoundException.class, RestaurantTableNotFoundException.class, TimeAvailabilityNotFoundException.class, ReservationNotFoundException.class})
     public ResponseEntity<ErrorResponseDTO> handleNotFoundException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseDTO(HttpStatus.NOT_FOUND.value(), e.getMessage()));
     }
@@ -16,5 +16,10 @@ public class ReservationExceptionController {
     @ExceptionHandler({NotEnoughTableException.class})
     public ResponseEntity<ErrorResponseDTO> handleConflictException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponseDTO(HttpStatus.CONFLICT.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler({UnauthorizedReservationAccessException.class})
+    public ResponseEntity<ErrorResponseDTO> handleForbiddenException(RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponseDTO(HttpStatus.FORBIDDEN.value(), e.getMessage()));
     }
 }

@@ -3,6 +3,8 @@ package com.astar.eattable.reservation.controller;
 import com.astar.eattable.reservation.command.ReservationCreateCommand;
 import com.astar.eattable.reservation.command.TableCountUpdateCommand;
 import com.astar.eattable.reservation.dto.MonthlyAvailabilityDTO;
+import com.astar.eattable.reservation.dto.MyReservationDetailsDTO;
+import com.astar.eattable.reservation.dto.MyReservationListDTO;
 import com.astar.eattable.reservation.dto.TableAvailabilityDTO;
 import com.astar.eattable.reservation.service.ReservationCommandService;
 import com.astar.eattable.reservation.service.ReservationQueryService;
@@ -41,5 +43,16 @@ public class ReservationController {
     public ResponseEntity<Void> createReservation(@RequestBody ReservationCreateCommand command, @CurrentUser User currentUser) {
         reservationCommandService.createReservation(command, currentUser);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/my-reservations")
+    public ResponseEntity<List<MyReservationListDTO>> getMyReservations(@CurrentUser User currentUser) {
+//        return ResponseEntity.ok(reservationQueryService.getMyReservations(currentUser));
+        return ResponseEntity.ok(reservationCommandService.getMyReservations(currentUser));
+    }
+
+    @GetMapping("/my-reservations/{reservationId}")
+    public ResponseEntity<MyReservationDetailsDTO> getMyReservation(@PathVariable Long reservationId, @CurrentUser User currentUser) {
+        return ResponseEntity.ok(reservationQueryService.getMyReservation(reservationId, currentUser));
     }
 }

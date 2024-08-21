@@ -4,8 +4,12 @@ import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.common.service.CommonService;
 import com.astar.eattable.reservation.command.ReservationCreateCommand;
 import com.astar.eattable.reservation.command.TableCountUpdateCommand;
+import com.astar.eattable.reservation.document.ReservationDocument;
+import com.astar.eattable.reservation.dto.MyReservationDetailsDTO;
+import com.astar.eattable.reservation.dto.MyReservationListDTO;
 import com.astar.eattable.reservation.event.ReservationCreateEvent;
 import com.astar.eattable.reservation.event.TableCountUpdateEvent;
+import com.astar.eattable.reservation.exception.ReservationNotFoundException;
 import com.astar.eattable.reservation.exception.RestaurantTableNotFoundException;
 import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
 import com.astar.eattable.reservation.model.Reservation;
@@ -81,7 +85,7 @@ public class ReservationCommandService {
         Integer reservationDuration = restaurant.getReservationDuration();
 
         while (currentDate.isBefore(endDate)) {
-            if (isDateInClosedPeriod(restaurantId, currentDate.toString())) {
+            if (isDateInClosedPeriod(restaurantId, currentDate)) {
                 currentDate = currentDate.plusDays(1);
                 continue;
             }
@@ -114,7 +118,7 @@ public class ReservationCommandService {
         return dayTableAvailabilities;
     }
 
-    private boolean isDateInClosedPeriod(Long restaurantId, String date) {
+    private boolean isDateInClosedPeriod(Long restaurantId, LocalDate date) {
         return closedPeriodRepository.findClosedPeriod(restaurantId, date).isPresent();
     }
 
@@ -162,5 +166,10 @@ public class ReservationCommandService {
         tableAvailability.decreaseRemainingTableCount();
 
         publisher.publishEvent(new ReservationCreateEvent(reservation.getId(), command, reservation.getRestaurant().getName(), currentUser));
+    }
+
+    @Transactional(readOnly = true)
+    public List<MyReservationListDTO> getMyReservations(User currentUser) {
+       return reservationRepository.findAllByUserId(currentUser.getId()).stream().map(MyReservationListDTO::new).collect(Collectors.toList());
     }
 }

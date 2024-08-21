@@ -7,8 +7,11 @@ import com.astar.eattable.reservation.document.ReservationDocument;
 import com.astar.eattable.reservation.document.TableAvailabilityDocument;
 import com.astar.eattable.reservation.document.TimeAvailabilityDocument;
 import com.astar.eattable.reservation.dto.MonthlyAvailabilityDTO;
+import com.astar.eattable.reservation.dto.MyReservationDetailsDTO;
+import com.astar.eattable.reservation.dto.MyReservationListDTO;
 import com.astar.eattable.reservation.dto.TableAvailabilityDTO;
 import com.astar.eattable.reservation.exception.MonthlyAvailabilityNotFoundException;
+import com.astar.eattable.reservation.exception.ReservationNotFoundException;
 import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
 import com.astar.eattable.reservation.exception.TimeAvailabilityNotFoundException;
 import com.astar.eattable.reservation.payload.ReservationCreatePayload;
@@ -16,11 +19,13 @@ import com.astar.eattable.reservation.payload.TableCountUpdatePayload;
 import com.astar.eattable.reservation.repository.MonthlyAvailabilityMongoRepository;
 import com.astar.eattable.reservation.repository.ReservationMongoRepository;
 import com.astar.eattable.reservation.repository.TableAvailabilityMongoRepository;
+import com.astar.eattable.reservation.validator.ReservationValidator;
 import com.astar.eattable.restaurant.document.BusinessHoursDocument;
 import com.astar.eattable.restaurant.document.RestaurantDetailsDocument;
 import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
 import com.astar.eattable.restaurant.repository.ClosedPeriodMongoRepository;
 import com.astar.eattable.restaurant.repository.RestaurantDetailsMongoRepository;
+import com.astar.eattable.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -42,6 +47,7 @@ public class ReservationQueryService {
     private final TableAvailabilityMongoRepository tableAvailabilityMongoRepository;
     private final ReservationMongoRepository reservationMongoRepository;
     private final CommonService commonService;
+    private final ReservationValidator reservationValidator;
 
     @Value("${max.reservation.period.days}")
     private int MAX_RESERVATION_PERIOD_DAYS;
@@ -170,5 +176,15 @@ public class ReservationQueryService {
                 .orElseThrow(() -> new TimeAvailabilityNotFoundException(payload.getCommand().getRestaurantId(), payload.getCommand().getDate(), payload.getCommand().getTime(), payload.getCommand().getCapacity()));
         timeAvailabilityDocument.decreaseRemainCount();
         tableAvailabilityMongoRepository.save(tableAvailabilityDocument);
+    }
+
+    public List<MyReservationListDTO> getMyReservations(User currentUser) {
+        return reservationMongoRepository.findAllByUserId(currentUser.getId()).stream().map(MyReservationListDTO::new).collect(Collectors.toList());
+    }
+
+    public MyReservationDetailsDTO getMyReservation(Long reservationId, User currentUser) {
+        ReservationDocument reservationDocument = reservationMongoRepository.findById(reservationId).orElseThrow(() -> new ReservationNotFoundException(reservationId));
+        reservationValidator.validateReservationOwner(reservationDocument, currentUser.getId());
+        return new MyReservationDetailsDTO(reservationDocument);
     }
 }

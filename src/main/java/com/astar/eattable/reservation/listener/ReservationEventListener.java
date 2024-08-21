@@ -59,6 +59,7 @@ public class ReservationEventListener {
     @KafkaListener(topics = "reservation-events", groupId = "reservation-service")
     public void listenReservationEvents(@Payload String message, Acknowledgment ack) throws JsonProcessingException {
         ExternalEvent externalReservationEvent = objectMapper.readValue(message, ExternalEvent.class);
+        eventService.checkExternalEvent(externalReservationEvent.getEventId(), ack);
         handleReservationEvent(externalReservationEvent);
         ack.acknowledge();
     }

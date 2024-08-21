@@ -26,7 +26,10 @@ public class ExternalEvent {
     private String payload;
 
     @NotNull
-    private final boolean published = false;
+    private boolean published = false;
+
+    @NotNull
+    private boolean consumed = false;
 
     @NotNull
     private LocalDateTime createdAt;
@@ -36,6 +39,8 @@ public class ExternalEvent {
     private User user;
 
     private LocalDateTime publishedAt;
+
+    private LocalDateTime consumedAt;
 
     @Builder
     public ExternalEvent(String eventType, String payload, User user) {
@@ -51,5 +56,10 @@ public class ExternalEvent {
                 .payload(payload)
                 .user(user)
                 .build();
+    }
+
+    public void consume() {
+        this.consumed = true;
+        this.consumedAt = LocalDateTime.now();
     }
 }
