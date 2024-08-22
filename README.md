@@ -38,8 +38,9 @@ spring.kafka.properties.security.protocol=SASL_SSL
 ## Function / 기능
 + 로그인 및 회원가입
 + 음식점 조회, 등록, 수정, 삭제
-+ 영업시간 수정
-+ 메뉴 등록, 수정, 삭제
++ 영업시간 및 휴무 기간 수정
++ 메뉴(섹션) 등록, 수정, 삭제
++ 예약 관리
 
 ## Technology / 기술
 
@@ -48,6 +49,7 @@ spring.kafka.properties.security.protocol=SASL_SSL
 + Transaction Outbox Pattern을 통해 데이터 일관성 유지 및 이벤트 기반 아키텍처 구축
 + Command와 Query 모델 동기화를 위한 Message Relay Server 구축
 + Spring Batch를 통한 정기적인 테이블 가용성 데이터 생성
++ Redis 분산락을 통한 음식점 예약 시에 동시성 문제 해결
 
 ## License / 라이센스
 
