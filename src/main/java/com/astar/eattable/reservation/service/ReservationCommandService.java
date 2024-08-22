@@ -1,15 +1,12 @@
 package com.astar.eattable.reservation.service;
 
 import com.astar.eattable.common.dto.Day;
+import com.astar.eattable.common.lock.DistributedLock;
 import com.astar.eattable.common.service.CommonService;
 import com.astar.eattable.reservation.command.ReservationCreateCommand;
 import com.astar.eattable.reservation.command.TableCountUpdateCommand;
-import com.astar.eattable.reservation.document.ReservationDocument;
-import com.astar.eattable.reservation.dto.MyReservationDetailsDTO;
-import com.astar.eattable.reservation.dto.MyReservationListDTO;
 import com.astar.eattable.reservation.event.ReservationCreateEvent;
 import com.astar.eattable.reservation.event.TableCountUpdateEvent;
-import com.astar.eattable.reservation.exception.ReservationNotFoundException;
 import com.astar.eattable.reservation.exception.RestaurantTableNotFoundException;
 import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
 import com.astar.eattable.reservation.model.Reservation;
@@ -28,6 +25,9 @@ import com.astar.eattable.restaurant.repository.RestaurantRepository;
 import com.astar.eattable.restaurant.validator.RestaurantValidator;
 import com.astar.eattable.user.model.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ReservationCommandService {
@@ -53,6 +54,7 @@ public class ReservationCommandService {
     private final ReservationValidator reservationValidator;
     private final ApplicationEventPublisher publisher;
     private final RestaurantValidator restaurantValidator;
+    private final RedissonClient redissonClient;
 
     @Value("${max.reservation.period.days}")
     private int MAX_RESERVATION_PERIOD_DAYS;
@@ -151,13 +153,13 @@ public class ReservationCommandService {
         for (TableAvailability tableAvailability : tableAvailabilities) {
             Integer maxCount = tableAvailability.getRestaurantTable().getCount();
             Integer usedCount = reservationRepository.countByTableAvailabilityId(tableAvailability.getId());
-             if (maxCount > usedCount) {
+            if (maxCount > usedCount) {
                 tableAvailability.updateRemainingTableCount(maxCount - usedCount);
             }
         }
     }
 
-    @Transactional
+    @DistributedLock(key = "#command.restaurantId + ':' + #command.date + ':' + #command.time + ':' + #command.capacity")
     public void createReservation(ReservationCreateCommand command, User currentUser) {
         TableAvailability tableAvailability = tableAvailabilityRepository.findByRestaurantIdAndDateAndStartTimeAndRestaurantTableCapacity(command.getRestaurantId(), LocalDate.parse(command.getDate()), LocalTime.parse(command.getTime()), command.getCapacity()).orElseThrow(() -> new TableAvailabilityNotFoundException(command.getRestaurantId(), command.getDate(), command.getTime(), command.getCapacity()));
         reservationValidator.validateRemainTableCount(tableAvailability);
@@ -166,10 +168,5 @@ public class ReservationCommandService {
         tableAvailability.decreaseRemainingTableCount();
 
         publisher.publishEvent(new ReservationCreateEvent(reservation.getId(), command, reservation.getRestaurant().getName(), currentUser));
-    }
-
-    @Transactional(readOnly = true)
-    public List<MyReservationListDTO> getMyReservations(User currentUser) {
-       return reservationRepository.findAllByUserId(currentUser.getId()).stream().map(MyReservationListDTO::new).collect(Collectors.toList());
     }
 }

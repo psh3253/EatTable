@@ -47,8 +47,7 @@ public class ReservationController {
 
     @GetMapping("/my-reservations")
     public ResponseEntity<List<MyReservationListDTO>> getMyReservations(@CurrentUser User currentUser) {
-//        return ResponseEntity.ok(reservationQueryService.getMyReservations(currentUser));
-        return ResponseEntity.ok(reservationCommandService.getMyReservations(currentUser));
+        return ResponseEntity.ok(reservationQueryService.getMyReservations(currentUser));
     }
 
     @GetMapping("/my-reservations/{reservationId}")
