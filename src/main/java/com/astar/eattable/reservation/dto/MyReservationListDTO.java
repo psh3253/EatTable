@@ -24,13 +24,4 @@ public class MyReservationListDTO {
         this.time = document.getTime();
         this.capacity = document.getCapacity();
     }
-
-    public MyReservationListDTO(Reservation reservation) {
-        this.reservationId = reservation.getId();
-        this.restaurantId = reservation.getRestaurant().getId();
-        this.restaurantName = reservation.getRestaurant().getName();
-        this.date = String.valueOf(reservation.getTableAvailability().getDate());
-        this.time = String.valueOf(reservation.getTableAvailability().getStartTime());
-        this.capacity = reservation.getCapacity();
-    }
 }

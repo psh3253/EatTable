@@ -21,10 +21,10 @@ import com.astar.eattable.reservation.repository.ReservationMongoRepository;
 import com.astar.eattable.reservation.repository.TableAvailabilityMongoRepository;
 import com.astar.eattable.reservation.validator.ReservationValidator;
 import com.astar.eattable.restaurant.document.BusinessHoursDocument;
-import com.astar.eattable.restaurant.document.RestaurantDetailsDocument;
+import com.astar.eattable.restaurant.document.RestaurantDocument;
 import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
 import com.astar.eattable.restaurant.repository.ClosedPeriodMongoRepository;
-import com.astar.eattable.restaurant.repository.RestaurantDetailsMongoRepository;
+import com.astar.eattable.restaurant.repository.RestaurantMongoRepository;
 import com.astar.eattable.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +43,7 @@ public class ReservationQueryService {
 
     private final MonthlyAvailabilityMongoRepository monthlyAvailabilityMongoRepository;
     private final ClosedPeriodMongoRepository closedPeriodMongoRepository;
-    private final RestaurantDetailsMongoRepository restaurantDetailsMongoRepository;
+    private final RestaurantMongoRepository restaurantMongoRepository;
     private final TableAvailabilityMongoRepository tableAvailabilityMongoRepository;
     private final ReservationMongoRepository reservationMongoRepository;
     private final CommonService commonService;
@@ -97,8 +97,8 @@ public class ReservationQueryService {
     }
 
     public void initTableAvailability(Long restaurantId) {
-        RestaurantDetailsDocument restaurantDetailsDocument = restaurantDetailsMongoRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
-        List<BusinessHoursDocument> businessHoursDocuments = restaurantDetailsDocument.getBusinessHours();
+        RestaurantDocument restaurantDocument = restaurantMongoRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
+        List<BusinessHoursDocument> businessHoursDocuments = restaurantDocument.getBusinessHours();
         Map<Day, BusinessHoursDocument> businessHoursMap = businessHoursDocuments.stream().collect(Collectors.toMap(BusinessHoursDocument::getDay, businessHoursDocument -> businessHoursDocument));
         List<TableAvailabilityDocument> tableAvailabilityDocuments = new ArrayList<>();
         LocalDate currentDate = getTableAvailabilityLastDateNextDay(restaurantId);

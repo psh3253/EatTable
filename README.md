@@ -28,6 +28,9 @@ spring.kafka.properties.sasl.mechanism=PLAIN
 spring.kafka.bootstrap-servers={{Kafka URL}}
 spring.kafka.properties.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username={{Kafka Username}} password={{Kafka Password}};
 spring.kafka.properties.security.protocol=SASL_SSL
+spring.data.redis.host={{Redis Host}}
+spring.data.redis.port={{Redis Port}}
+spring.data.redis.password={{Redis Password}}
 ```
 
 

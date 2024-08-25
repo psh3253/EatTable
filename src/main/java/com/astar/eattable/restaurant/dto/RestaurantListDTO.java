@@ -1,6 +1,6 @@
 package com.astar.eattable.restaurant.dto;
 
-import com.astar.eattable.restaurant.document.RestaurantListDocument;
+import com.astar.eattable.restaurant.document.RestaurantDocument;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
@@ -17,7 +17,7 @@ public class RestaurantListDTO {
     private final Double reviewScore;
     private final Long reviewCount;
 
-    public RestaurantListDTO(RestaurantListDocument document) {
+    public RestaurantListDTO(RestaurantDocument document) {
         this.id = document.getId();
         this.name = document.getName();
         this.imageUrl = document.getImageUrl();
