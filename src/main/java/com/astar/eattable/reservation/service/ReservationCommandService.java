@@ -26,7 +26,6 @@ import com.astar.eattable.restaurant.validator.RestaurantValidator;
 import com.astar.eattable.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;

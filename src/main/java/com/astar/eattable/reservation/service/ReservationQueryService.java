@@ -156,8 +156,8 @@ public class ReservationQueryService {
 
     public void updateTableAvailability(TableCountUpdatePayload payload) {
         List<TableAvailabilityDocument> tableAvailabilityDocuments = tableAvailabilityMongoRepository.findAllByRestaurantIdAndCapacity(payload.getRestaurantId(), payload.getCommand().getCapacity());
-        for(TableAvailabilityDocument tableAvailabilityDocument : tableAvailabilityDocuments) {
-            for(TimeAvailabilityDocument timeAvailabilityDocument : tableAvailabilityDocument.getTimeAvailabilityDocuments()) {
+        for (TableAvailabilityDocument tableAvailabilityDocument : tableAvailabilityDocuments) {
+            for (TimeAvailabilityDocument timeAvailabilityDocument : tableAvailabilityDocument.getTimeAvailabilityDocuments()) {
                 Integer usedCount = reservationMongoRepository.countAllByRestaurantIdAndDateAndTimeAndCapacity(payload.getRestaurantId(), tableAvailabilityDocument.getDate(), timeAvailabilityDocument.getTime(), payload.getCommand().getCapacity());
                 timeAvailabilityDocument.updateRemainCount(payload.getCommand().getCount() - usedCount);
             }

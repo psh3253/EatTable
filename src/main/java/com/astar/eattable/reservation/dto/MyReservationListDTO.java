@@ -1,7 +1,6 @@
 package com.astar.eattable.reservation.dto;
 
 import com.astar.eattable.reservation.document.ReservationDocument;
-import com.astar.eattable.reservation.model.Reservation;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;

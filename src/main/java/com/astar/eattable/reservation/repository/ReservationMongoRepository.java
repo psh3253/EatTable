@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface ReservationMongoRepository extends MongoRepository<ReservationDocument, Long> {
     Integer countAllByRestaurantIdAndDateAndTimeAndCapacity(Long restaurantId, String date, String time, Integer capacity);
+
     List<ReservationDocument> findAllByUserId(Long userId);
+
     Optional<ReservationDocument> findById(Long reservationId);
 }

@@ -1,6 +1,7 @@
 package com.astar.eattable.restaurant.service;
 
 import com.astar.eattable.common.dto.Day;
+import com.astar.eattable.restaurant.RestaurantTestUtils;
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.exception.*;
@@ -98,9 +99,9 @@ class RestaurantCommandServiceTest {
                 .build();
         notOwnerUser.setIdForTest(2L);
         businessHoursList = new ArrayList<>();
-        for (int i = 0; i < 7; i++) {
+        for (Day day : Day.values()) {
             businessHoursList.add(BusinessHours.builder()
-                    .day(Day.values()[i])
+                    .day(day)
                     .startTime(LocalTime.of(9, 0))
                     .endTime(LocalTime.of(21, 0))
                     .breakStartTime(LocalTime.of(12, 0))
@@ -135,16 +136,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 식당을 생성하면 식당 ID를 반환한다.")
     void createRestaurant_withValidInput_returnsRestaurantId() {
         // given
-        List<BusinessHoursCommand> businessHoursCommands = List.of(
-                new BusinessHoursCommand("MONDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("TUESDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("WEDNESDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("THURSDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("FRIDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("SATURDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("SUNDAY", "09:00", "21:00", "12:00", "13:00", "20:00")
-        );
-        RestaurantCreateCommand command = new RestaurantCreateCommand("테스트 식당", "맛있는 식당", "서울시 강남구", "02-1234-5678", "이미지 URL", "한식", businessHoursCommands, 37.123456, 127.123456);
+        RestaurantCreateCommand command = RestaurantTestUtils.getRestaurantCreateCommand();
         given(restaurantRepository.save(any(Restaurant.class))).willReturn(restaurant);
         given(businessHoursRepository.save(any(BusinessHours.class))).willReturn(null);
 
@@ -164,16 +156,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("이미 존재하는 식당 이름과 주소로 식당을 생성하려고 하면 RestaurantAlreadyExistsException 예외가 발생한다.")
     void createRestaurant_withAlreadyExistingRestaurant_throwsRestaurantAlreadyExistsException() {
         // given
-        List<BusinessHoursCommand> businessHoursCommands = List.of(
-                new BusinessHoursCommand("MONDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("TUESDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("WEDNESDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("THURSDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("FRIDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("SATURDAY", "09:00", "21:00", "12:00", "13:00", "20:00"),
-                new BusinessHoursCommand("SUNDAY", "09:00", "21:00", "12:00", "13:00", "20:00")
-        );
-        RestaurantCreateCommand command = new RestaurantCreateCommand("테스트 식당", "맛있는 식당", "서울시 강남구", "02-1234-5678", "이미지 URL", "한식", businessHoursCommands, 37.123456, 127.123456);
+        RestaurantCreateCommand command = RestaurantTestUtils.getRestaurantCreateCommand();
         given(restaurantRepository.existsByNameAndAddress(command.getName(), command.getAddress())).willReturn(true);
 
         // when & then
@@ -281,16 +264,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 영업시간을 수정하면 영업시간이 수정된다.")
     void updateBusinessHours_withValidInput_updatesBusinessHours() {
         // given
-        List<BusinessHoursCommand> businessHoursCommands = List.of(
-                new BusinessHoursCommand("MONDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("TUESDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("WEDNESDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("THURSDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("FRIDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("SATURDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("SUNDAY", "10:00", "22:00", "13:00", "14:00", "21:00")
-        );
-        BusinessHoursUpdateCommand command = new BusinessHoursUpdateCommand(businessHoursCommands);
+        BusinessHoursUpdateCommand command = RestaurantTestUtils.getBusinessHoursUpdateCommand();
         given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
         given(businessHoursRepository.findByRestaurantIdAndDay(1L, Day.MONDAY)).willReturn(Optional.of(businessHoursList.get(0)));
@@ -318,16 +292,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 영업시간을 수정하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void updateBusinessHours_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
-        List<BusinessHoursCommand> businessHoursCommands = List.of(
-                new BusinessHoursCommand("MONDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("TUESDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("WEDNESDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("THURSDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("FRIDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("SATURDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("SUNDAY", "10:00", "22:00", "13:00", "14:00", "21:00")
-        );
-        BusinessHoursUpdateCommand command = new BusinessHoursUpdateCommand(businessHoursCommands);
+        BusinessHoursUpdateCommand command = RestaurantTestUtils.getBusinessHoursUpdateCommand();
         given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
         willThrow(new UnauthorizedRestaurantAccessException(restaurant.getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(restaurant, notOwnerUser.getId());
 
@@ -341,16 +306,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 식당의 영업시간을 수정하려고 하면 RestaurantNotFoundException 예외가 발생한다.")
     void updateBusinessHours_withNotExistingRestaurant_throwsRestaurantNotFoundException() {
         // given
-        List<BusinessHoursCommand> businessHoursCommands = List.of(
-                new BusinessHoursCommand("MONDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("TUESDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("WEDNESDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("THURSDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("FRIDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("SATURDAY", "10:00", "22:00", "13:00", "14:00", "21:00"),
-                new BusinessHoursCommand("SUNDAY", "10:00", "22:00", "13:00", "14:00", "21:00")
-        );
-        BusinessHoursUpdateCommand command = new BusinessHoursUpdateCommand(businessHoursCommands);
+        BusinessHoursUpdateCommand command = RestaurantTestUtils.getBusinessHoursUpdateCommand();
         given(restaurantRepository.findById(1L)).willReturn(Optional.empty());
 
         // when & then
