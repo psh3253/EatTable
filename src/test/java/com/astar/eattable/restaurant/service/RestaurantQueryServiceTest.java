@@ -2,17 +2,18 @@ package com.astar.eattable.restaurant.service;
 
 import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.restaurant.RestaurantTestUtils;
-import com.astar.eattable.restaurant.command.BusinessHoursUpdateCommand;
-import com.astar.eattable.restaurant.command.RestaurantCreateCommand;
-import com.astar.eattable.restaurant.command.RestaurantUpdateCommand;
+import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.document.BusinessHoursDocument;
+import com.astar.eattable.restaurant.document.ClosedPeriodDocument;
+import com.astar.eattable.restaurant.document.MenuSectionMapDocument;
 import com.astar.eattable.restaurant.document.RestaurantDocument;
+import com.astar.eattable.restaurant.dto.ClosedPeriodListDTO;
+import com.astar.eattable.restaurant.dto.MenuSectionDTO;
 import com.astar.eattable.restaurant.dto.RestaurantDetailsDTO;
 import com.astar.eattable.restaurant.dto.RestaurantListDTO;
-import com.astar.eattable.restaurant.payload.BusinessHoursUpdateEventPayload;
-import com.astar.eattable.restaurant.payload.RestaurantCreateEventPayload;
-import com.astar.eattable.restaurant.payload.RestaurantDeleteEventPayload;
-import com.astar.eattable.restaurant.payload.RestaurantUpdateEventPayload;
+import com.astar.eattable.restaurant.payload.*;
+import com.astar.eattable.restaurant.repository.ClosedPeriodMongoRepository;
+import com.astar.eattable.restaurant.repository.MenuSectionMapMongoRepository;
 import com.astar.eattable.restaurant.repository.RestaurantMongoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,8 +45,16 @@ class RestaurantQueryServiceTest {
     @Mock
     private RestaurantMongoRepository restaurantMongoRepository;
 
+    @Mock
+    private MenuSectionMapMongoRepository menuSectionMapMongoRepository;
+
+    @Mock
+    private ClosedPeriodMongoRepository closedPeriodMongoRepository;
+
     private List<BusinessHoursDocument> businessHoursDocuments;
     private RestaurantDocument restaurantDocument;
+    private MenuSectionMapDocument menuSectionMapDocument;
+    private List<ClosedPeriodDocument> closedPeriodDocuments;
 
     @BeforeEach
     void setUp() {
@@ -55,6 +65,17 @@ class RestaurantQueryServiceTest {
         }
         GeoJsonPoint location = new GeoJsonPoint(37.123456, 127.123456);
         restaurantDocument = new RestaurantDocument(1L, "테스트 식당", "맛있는 식당", "이미지 URL", "한식", "02-1234-5678", "서울시 강남구", location, 0.0, 0L, businessHoursDocuments);
+        menuSectionMapDocument = new MenuSectionMapDocument(1L);
+
+        MenuSectionCreateCommand createCommand = new MenuSectionCreateCommand("메인 메뉴");
+        MenuSectionCreateEventPayload createPayload = new MenuSectionCreateEventPayload(1L, 1L, createCommand);
+        menuSectionMapDocument.createMenuSection(createPayload);
+
+        MenuCreateCommand menuCreateCommand = new MenuCreateCommand("치킨", "맛있는 치킨", 15000, "이미지 URL");
+        MenuCreateEventPayload menuCreateEventPayload = new MenuCreateEventPayload(1L, 1L, 1L, menuCreateCommand);
+        menuSectionMapDocument.createMenu(menuCreateEventPayload);
+
+        closedPeriodDocuments = List.of(new ClosedPeriodDocument(1L, 1L, "2024-09-01", "2024-09-07", "휴가"));
     }
 
     @Test
@@ -165,46 +186,166 @@ class RestaurantQueryServiceTest {
     }
 
     @Test
-    void initMenuSections() {
+    @DisplayName("유효한 식당 ID로 메뉴 섹션을 초기화하면 메뉴 섹션 맵 Document를 저장한다.")
+    void initMenuSections_withValidRestaurantId_thenSaveMenuSectionMapDocument() {
+        // given
+
+        // when
+        restaurantQueryService.initMenuSections(1L);
+
+        // then
+        verify(menuSectionMapMongoRepository, times(1)).save(any(MenuSectionMapDocument.class));
     }
 
     @Test
-    void createMenuSection() {
+    @DisplayName("유효한 페이로드로 메뉴 섹션을 생성하면 메뉴 섹션 맵 Document를 저장한다.")
+    void createMenuSection_withValidPayload_thenSaveMenuSectionMapDocument() {
+        // given
+        MenuSectionCreateCommand command = new MenuSectionCreateCommand("사이드 메뉴");
+        MenuSectionCreateEventPayload payload = new MenuSectionCreateEventPayload(1L, 2L, command);
+        given(menuSectionMapMongoRepository.findByRestaurantId(1L)).willReturn(Optional.of(new MenuSectionMapDocument(1L)));
+
+        // when
+        restaurantQueryService.createMenuSection(payload);
+
+        // then
+        verify(menuSectionMapMongoRepository, times(1)).save(any(MenuSectionMapDocument.class));
     }
 
     @Test
-    void deleteMenuSection() {
+    @DisplayName("유효한 페이로드로 메뉴 섹션을 삭제하면 메뉴 섹션 맵 Document를 업데이트한다.")
+    void deleteMenuSection_withValidPayload_thenDeleteMenuSectionMapDocument() {
+        // given
+        MenuSectionDeleteEventPayload payload = new MenuSectionDeleteEventPayload(1L, 1L);
+        given(menuSectionMapMongoRepository.findByRestaurantId(1L)).willReturn(Optional.of(menuSectionMapDocument));
+
+        // when
+        restaurantQueryService.deleteMenuSection(payload);
+
+        // then
+        verify(menuSectionMapMongoRepository, times(1)).save(any(MenuSectionMapDocument.class));
     }
 
     @Test
-    void updateMenuSection() {
+    @DisplayName("유효한 페이로드로 메뉴 섹션을 업데이트하면 메뉴 섹션 맵 Document를 업데이트한다.")
+    void updateMenuSection_withValidPayload_thenUpdateMenuSectionMapDocument() {
+        // given
+        MenuSectionUpdateCommand command = new MenuSectionUpdateCommand("사이드 메뉴");
+        MenuSectionUpdateEventPayload payload = new MenuSectionUpdateEventPayload(1L, 1L, command);
+        given(menuSectionMapMongoRepository.findByRestaurantId(1L)).willReturn(Optional.of(menuSectionMapDocument));
+
+        // when
+        restaurantQueryService.updateMenuSection(payload);
+
+        // then
+        verify(menuSectionMapMongoRepository, times(1)).save(any(MenuSectionMapDocument.class));
     }
 
     @Test
-    void createMenu() {
+    @DisplayName("유효한 페이로드로 메뉴를 생성하면 메뉴 섹션 맵 Document를 업데이트한다.")
+    void createMenu_withValidPayload_thenSaveMenuSectionMapDocument() {
+        // given
+        MenuCreateCommand command = new MenuCreateCommand("햄버거", "맛있는 햄버거", 10000, "수정된 이미지 URL");
+        MenuCreateEventPayload payload = new MenuCreateEventPayload(1L, 1L, 1L, command);
+        given(menuSectionMapMongoRepository.findByRestaurantId(1L)).willReturn(Optional.of(menuSectionMapDocument));
+
+        // when
+        restaurantQueryService.createMenu(payload);
+
+        // then
+        verify(menuSectionMapMongoRepository, times(1)).save(any(MenuSectionMapDocument.class));
     }
 
     @Test
-    void deleteMenu() {
+    @DisplayName("유효한 페이로드로 메뉴를 삭제하면 메뉴 섹션 맵 Document를 업데이트한다.")
+    void deleteMenu_withValidPayload_thenDeleteMenuSectionMapDocument() {
+        // given
+        MenuDeleteEventPayload payload = new MenuDeleteEventPayload(1L, 1L, 1L);
+        given(menuSectionMapMongoRepository.findByRestaurantId(1L)).willReturn(Optional.of(menuSectionMapDocument));
+
+        // when
+        restaurantQueryService.deleteMenu(payload);
+
+        // then
+        verify(menuSectionMapMongoRepository, times(1)).save(any(MenuSectionMapDocument.class));
     }
 
     @Test
-    void updateMenu() {
+    @DisplayName("유효한 페이로드로 메뉴를 업데이트하면 메뉴 섹션 맵 Document를 업데이트한다.")
+    void updateMenu_withValidPayload_thenUpdateMenuSectionMapDocument() {
+        // given
+        MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000, "맛있는 햄버거", "수정된 이미지 URL");
+        MenuUpdateEventPayload payload = new MenuUpdateEventPayload(1L, 1L, 1L, command);
+        given(menuSectionMapMongoRepository.findByRestaurantId(1L)).willReturn(Optional.of(menuSectionMapDocument));
+
+        // when
+        restaurantQueryService.updateMenu(payload);
+
+        // then
+        verify(menuSectionMapMongoRepository, times(1)).save(any(MenuSectionMapDocument.class));
     }
 
     @Test
-    void getMenuSections() {
+    @DisplayName("유효한 식당 ID로 메뉴 섹션을 조회하면 메뉴 섹션 DTO 목록을 반환한다.")
+    void getMenuSections_withValidRestaurantId_thenReturnMenuSectionDTOs() {
+        // given
+        given(menuSectionMapMongoRepository.findByRestaurantId(1L)).willReturn(Optional.of(menuSectionMapDocument));
+
+        // when
+        Map<Long, MenuSectionDTO> resultDTOs = restaurantQueryService.getMenuSections(1L);
+
+        // then
+        assertThat(resultDTOs.size()).isEqualTo(1);
+        assertThat(resultDTOs.get(1L).getName()).isEqualTo("메인 메뉴");
+        assertThat(resultDTOs.get(1L).getMenus().size()).isEqualTo(1);
+        assertThat(resultDTOs.get(1L).getMenus().get(1L).getName()).isEqualTo("치킨");
+        assertThat(resultDTOs.get(1L).getMenus().get(1L).getDescription()).isEqualTo("맛있는 치킨");
+        assertThat(resultDTOs.get(1L).getMenus().get(1L).getPrice()).isEqualTo(15000);
+        assertThat(resultDTOs.get(1L).getMenus().get(1L).getImageUrl()).isEqualTo("이미지 URL");
     }
 
     @Test
-    void createClosedPeriod() {
+    @DisplayName("유효한 페이로드로 휴무일을 생성하면 휴무일 Document를 저장한다.")
+    void createClosedPeriod_withValidPayload_thenSaveClosedPeriodDocument() {
+        // given
+        ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2024-09-01", "2024-09-07", "휴가");
+        ClosedPeriodCreateEventPayload payload = new ClosedPeriodCreateEventPayload(1L,1L, command);
+
+        // when
+        restaurantQueryService.createClosedPeriod(payload);
+
+        // then
+        verify(closedPeriodMongoRepository, times(1)).save(any(ClosedPeriodDocument.class));
     }
 
     @Test
-    void deleteClosedPeriod() {
+    @DisplayName("유효한 페이로드로 휴무일을 삭제하면 휴무일 Document를 삭제한다.")
+    void deleteClosedPeriod_withValidPayload_thenDeleteClosedPeriodDocument() {
+        // given
+        ClosedPeriodDeleteEventPayload payload = new ClosedPeriodDeleteEventPayload(1L, 1L);
+
+        // when
+        restaurantQueryService.deleteClosedPeriod(payload);
+
+        // then
+        verify(closedPeriodMongoRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    void getClosedPeriods() {
+    @DisplayName("유효한 식당 ID로 휴무일을 조회하면 휴무일 목록을 반환한다.")
+    void getClosedPeriods_withValidRestaurantId_thenReturnClosedPeriodListDTOs() {
+        // given
+        ClosedPeriodDocument closedPeriodDocument = new ClosedPeriodDocument(1L, 1L, "2024-09-01", "2024-09-07", "휴가");
+        given(closedPeriodMongoRepository.findAllByRestaurantId(1L)).willReturn(closedPeriodDocuments);
+
+        // when
+        List<ClosedPeriodListDTO> resultDTOs = restaurantQueryService.getClosedPeriods(1L);
+
+        // then
+        assertThat(resultDTOs.size()).isEqualTo(1);
+        assertThat(resultDTOs.get(0).getClosedPeriodId()).isEqualTo(1L);
+        assertThat(resultDTOs.get(0).getStartDate()).isEqualTo("2024-09-01");
+        assertThat(resultDTOs.get(0).getEndDate()).isEqualTo("2024-09-07");
+        assertThat(resultDTOs.get(0).getReason()).isEqualTo("휴가");
     }
 }
