@@ -171,11 +171,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 식당을 삭제하면 식당이 삭제된다.")
     void deleteRestaurant_withValidInput_deletesRestaurant() {
         // given
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        Long restaurantId = 1L;
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
 
         // when
-        restaurantCommandService.deleteRestaurant(1L, user);
+        restaurantCommandService.deleteRestaurant(restaurantId, user);
 
         // then
         verify(restaurantRepository, times(1)).delete(restaurant);
@@ -186,11 +187,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 식당을 삭제하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void deleteRestaurant_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        Long restaurantId = 1L;
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willThrow(new UnauthorizedRestaurantAccessException(restaurant.getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(restaurant, notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.deleteRestaurant(1L, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.deleteRestaurant(restaurantId, notOwnerUser));
 
         verify(restaurantRepository, times(0)).delete(restaurant);
         verify(publisher, times(0)).publishEvent(any(RestaurantDeleteEvent.class));
@@ -200,10 +202,11 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 식당을 삭제하려고 하면 RestaurantNotFoundException 예외가 발생한다.")
     void deleteRestaurant_withNotExistingRestaurant_throwsRestaurantNotFoundException() {
         // given
-        given(restaurantRepository.findById(1L)).willReturn(Optional.empty());
+        Long restaurantId = 1L;
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.deleteRestaurant(1L, user));
+        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.deleteRestaurant(restaurantId, user));
 
         verify(restaurantRepository, times(0)).delete(restaurant);
         verify(publisher, times(0)).publishEvent(any(RestaurantDeleteEvent.class));
@@ -213,14 +216,16 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 식당을 수정하면 식당이 수정된다.")
     void updateRestaurant_withValidInput_updatesRestaurant() {
         // given
+        Long restaurantId = 1L;
         RestaurantUpdateCommand command = new RestaurantUpdateCommand("수정된 식당", "더 맛있는 식당", "서울시 서초구", "02-5678-1234", "수정된 이미지 URL", "양식", 37.654321, 127.654321);
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
 
         // when
-        restaurantCommandService.updateRestaurant(1L, command, user);
+        restaurantCommandService.updateRestaurant(restaurantId, command, user);
 
         // then
+        assertThat(restaurant.getId()).isEqualTo(restaurantId);
         assertThat(restaurant.getName()).isEqualTo("수정된 식당");
         assertThat(restaurant.getDescription()).isEqualTo("더 맛있는 식당");
         assertThat(restaurant.getAddress()).isEqualTo("서울시 서초구");
@@ -237,12 +242,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 식당을 수정하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void updateRestaurant_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
+        Long restaurantId = 1L;
         RestaurantUpdateCommand command = new RestaurantUpdateCommand("수정된 식당", "더 맛있는 식당", "서울시 서초구", "02-5678-1234", "수정된 이미지 URL", "양식", 37.654321, 127.654321);
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willThrow(new UnauthorizedRestaurantAccessException(restaurant.getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(restaurant, notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateRestaurant(1L, command, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateRestaurant(restaurantId, command, notOwnerUser));
 
         verify(publisher, times(0)).publishEvent(any(RestaurantUpdateEvent.class));
     }
@@ -251,11 +257,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 식당을 수정하려고 하면 RestaurantNotFoundException 예외가 발생한다.")
     void updateRestaurant_withNotExistingRestaurant_throwsRestaurantNotFoundException() {
         // given
+        Long restaurantId = 1L;
         RestaurantUpdateCommand command = new RestaurantUpdateCommand("수정된 식당", "더 맛있는 식당", "서울시 서초구", "02-5678-1234", "수정된 이미지 URL", "양식", 37.654321, 127.654321);
-        given(restaurantRepository.findById(1L)).willReturn(Optional.empty());
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.updateRestaurant(1L, command, user));
+        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.updateRestaurant(restaurantId, command, user));
 
         verify(publisher, times(0)).publishEvent(any(RestaurantUpdateEvent.class));
     }
@@ -264,8 +271,9 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 영업시간을 수정하면 영업시간이 수정된다.")
     void updateBusinessHours_withValidInput_updatesBusinessHours() {
         // given
+        Long restaurantId = 1L;
         BusinessHoursUpdateCommand command = RestaurantTestUtils.getBusinessHoursUpdateCommand();
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
         given(businessHoursRepository.findByRestaurantIdAndDay(1L, Day.MONDAY)).willReturn(Optional.of(businessHoursList.get(0)));
         given(businessHoursRepository.findByRestaurantIdAndDay(1L, Day.TUESDAY)).willReturn(Optional.of(businessHoursList.get(1)));
@@ -276,7 +284,7 @@ class RestaurantCommandServiceTest {
         given(businessHoursRepository.findByRestaurantIdAndDay(1L, Day.SUNDAY)).willReturn(Optional.of(businessHoursList.get(6)));
 
         // when
-        restaurantCommandService.updateBusinessHours(1L, command, user);
+        restaurantCommandService.updateBusinessHours(restaurantId, command, user);
 
         // then
         assertThat(businessHoursList.get(0).getStartTime()).isEqualTo(LocalTime.of(10, 0));
@@ -292,12 +300,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 영업시간을 수정하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void updateBusinessHours_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
+        Long restaurantId = 1L;
         BusinessHoursUpdateCommand command = RestaurantTestUtils.getBusinessHoursUpdateCommand();
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willThrow(new UnauthorizedRestaurantAccessException(restaurant.getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(restaurant, notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateBusinessHours(1L, command, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateBusinessHours(restaurantId, command, notOwnerUser));
 
         verify(publisher, times(0)).publishEvent(any(BusinessHoursUpdateEvent.class));
     }
@@ -306,11 +315,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 식당의 영업시간을 수정하려고 하면 RestaurantNotFoundException 예외가 발생한다.")
     void updateBusinessHours_withNotExistingRestaurant_throwsRestaurantNotFoundException() {
         // given
+        Long restaurantId = 1L;
         BusinessHoursUpdateCommand command = RestaurantTestUtils.getBusinessHoursUpdateCommand();
-        given(restaurantRepository.findById(1L)).willReturn(Optional.empty());
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.updateBusinessHours(1L, command, user));
+        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.updateBusinessHours(restaurantId, command, user));
 
         verify(publisher, times(0)).publishEvent(any(BusinessHoursUpdateEvent.class));
     }
@@ -319,13 +329,14 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 메뉴 섹션을 생성하면 메뉴 섹션이 생성된다.")
     void createMenuSection_withValidInput_createsMenuSection() {
         // given
+        Long restaurantId = 1L;
         MenuSectionCreateCommand command = new MenuSectionCreateCommand("메인 메뉴");
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         given(menuSectionRepository.save(any(MenuSection.class))).willReturn(menuSection);
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
 
         // when
-        restaurantCommandService.createMenuSection(1L, command, user);
+        restaurantCommandService.createMenuSection(restaurantId, command, user);
 
         // then
         verify(menuSectionRepository, times(1)).save(any(MenuSection.class));
@@ -336,12 +347,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 메뉴 섹션을 생성하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void createMenuSection_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
+        Long restaurantId = 1L;
         MenuSectionCreateCommand command = new MenuSectionCreateCommand("메인 메뉴");
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willThrow(new UnauthorizedRestaurantAccessException(restaurant.getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(restaurant, notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.createMenuSection(1L, command, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.createMenuSection(restaurantId, command, notOwnerUser));
 
         verify(menuSectionRepository, times(0)).save(any(MenuSection.class));
         verify(publisher, times(0)).publishEvent(any(MenuSectionCreateEvent.class));
@@ -351,11 +363,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 식당에 메뉴 섹션을 생성하려고 하면 RestaurantNotFoundException 예외가 발생한다.")
     void createMenuSection_withNotExistingRestaurant_throwsRestaurantNotFoundException() {
         // given
+        Long restaurantId = 1L;
         MenuSectionCreateCommand command = new MenuSectionCreateCommand("메인 메뉴");
-        given(restaurantRepository.findById(1L)).willReturn(Optional.empty());
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.createMenuSection(1L, command, user));
+        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.createMenuSection(restaurantId, command, user));
 
         verify(menuSectionRepository, times(0)).save(any(MenuSection.class));
         verify(publisher, times(0)).publishEvent(any(MenuSectionCreateEvent.class));
@@ -365,12 +378,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("이미 존재하는 메뉴 섹션 이름으로 메뉴 섹션을 생성하려고 하면 MenuSectionAlreadyExistsException 예외가 발생한다.")
     void createMenuSection_withAlreadyExistingMenuSection_throwsMenuSectionAlreadyExistsException() {
         // given
+        Long  restaurantId = 1L;
         MenuSectionCreateCommand command = new MenuSectionCreateCommand("메인 메뉴");
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
-        given(menuSectionRepository.existsByRestaurantIdAndName(1L, command.getName())).willReturn(true);
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
+        given(menuSectionRepository.existsByRestaurantIdAndName(restaurantId, command.getName())).willReturn(true);
 
         // when & then
-        assertThrows(MenuSectionAlreadyExistsException.class, () -> restaurantCommandService.createMenuSection(1L, command, user));
+        assertThrows(MenuSectionAlreadyExistsException.class, () -> restaurantCommandService.createMenuSection(restaurantId, command, user));
 
         verify(menuSectionRepository, times(0)).save(any(MenuSection.class));
         verify(publisher, times(0)).publishEvent(any(MenuSectionCreateEvent.class));
@@ -380,12 +394,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 메뉴 섹션을 수정하면 메뉴 섹션이 수정된다.")
     void updateMenuSection_withValidInput_updatesMenuSection() {
         // given
+        Long menuSectionId = 1L;
         MenuSectionUpdateCommand command = new MenuSectionUpdateCommand("사이드 메뉴");
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.of(menuSection));
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.of(menuSection));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(menuSection.getRestaurant(), user.getId());
 
         // when
-        restaurantCommandService.updateMenuSection(1L, command, user);
+        restaurantCommandService.updateMenuSection(menuSectionId, command, user);
 
         // then
         assertThat(menuSection.getName()).isEqualTo("사이드 메뉴");
@@ -397,12 +412,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 메뉴 섹션을 수정하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void updateMenuSection_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
+        Long menuSectionId = 1L;
         MenuSectionUpdateCommand command = new MenuSectionUpdateCommand("사이드 메뉴");
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.of(menuSection));
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.of(menuSection));
         willThrow(new UnauthorizedRestaurantAccessException(menuSection.getRestaurant().getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(menuSection.getRestaurant(), notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateMenuSection(1L, command, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateMenuSection(menuSectionId, command, notOwnerUser));
 
         verify(publisher, times(0)).publishEvent(any(MenuSectionUpdateEvent.class));
     }
@@ -411,11 +427,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 메뉴 섹션을 수정하려고 하면 MenuSectionNotFoundException 예외가 발생한다.")
     void updateMenuSection_withNotExistingMenuSection_throwsMenuSectionNotFoundException() {
         // given
+        Long menuSectionId = 1L;
         MenuSectionUpdateCommand command = new MenuSectionUpdateCommand("사이드 메뉴");
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.empty());
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(MenuSectionNotFoundException.class, () -> restaurantCommandService.updateMenuSection(1L, command, user));
+        assertThrows(MenuSectionNotFoundException.class, () -> restaurantCommandService.updateMenuSection(menuSectionId, command, user));
 
         verify(publisher, times(0)).publishEvent(any(MenuSectionUpdateEvent.class));
     }
@@ -424,11 +441,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 메뉴 섹션을 삭제하면 메뉴 섹션이 삭제된다.")
     void deleteMenuSection_withValidInput_deletesMenuSection() {
         // given
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.of(menuSection));
+        Long menuSectionId = 1L;
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.of(menuSection));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(menuSection.getRestaurant(), user.getId());
 
         // when
-        restaurantCommandService.deleteMenuSection(1L, user);
+        restaurantCommandService.deleteMenuSection(menuSectionId, user);
 
         // then
         verify(menuSectionRepository, times(1)).delete(menuSection);
@@ -439,11 +457,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 메뉴 섹션을 삭제하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void deleteMenuSection_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.of(menuSection));
+        Long menuSectionId = 1L;
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.of(menuSection));
         willThrow(new UnauthorizedRestaurantAccessException(menuSection.getRestaurant().getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(menuSection.getRestaurant(), notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.deleteMenuSection(1L, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.deleteMenuSection(menuSectionId, notOwnerUser));
 
         verify(menuSectionRepository, times(0)).delete(menuSection);
         verify(publisher, times(0)).publishEvent(any(MenuSectionDeleteEvent.class));
@@ -453,10 +472,11 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 메뉴 섹션을 삭제하려고 하면 MenuSectionNotFoundException 예외가 발생한다.")
     void deleteMenuSection_withNotExistingMenuSection_throwsMenuSectionNotFoundException() {
         // given
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.empty());
+        Long menuSectionId = 1L;
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(MenuSectionNotFoundException.class, () -> restaurantCommandService.deleteMenuSection(1L, user));
+        assertThrows(MenuSectionNotFoundException.class, () -> restaurantCommandService.deleteMenuSection(menuSectionId, user));
 
         verify(menuSectionRepository, times(0)).delete(menuSection);
         verify(publisher, times(0)).publishEvent(any(MenuSectionDeleteEvent.class));
@@ -466,11 +486,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("메뉴 섹션에 메뉴가 없을 때 메뉴 섹션을 삭제하면 메뉴 섹션이 삭제된다.")
     void deleteMenuSection_withNotEmptyMenuSection_throwsMenuSectionNotEmptyException() {
         // given
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.of(menuSection));
-        given(menuRepository.existsByMenuSectionId(1L)).willReturn(true);
+        Long menuSectionId = 1L;
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.of(menuSection));
+        given(menuRepository.existsByMenuSectionId(menuSectionId)).willReturn(true);
 
         // when & then
-        assertThrows(MenuSectionNotEmptyException.class, () -> restaurantCommandService.deleteMenuSection(1L, user));
+        assertThrows(MenuSectionNotEmptyException.class, () -> restaurantCommandService.deleteMenuSection(menuSectionId, user));
 
         verify(menuSectionRepository, times(0)).delete(menuSection);
         verify(publisher, times(0)).publishEvent(any(MenuSectionDeleteEvent.class));
@@ -480,13 +501,14 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 메뉴를 생성하면 메뉴가 생성된다.")
     void createMenu_withValidInput_createsMenu() {
         // given
+        Long menuSectionId = 1L;
         MenuCreateCommand command = new MenuCreateCommand("치킨", "맛있는 치킨", 15000, "이미지 URL");
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.of(menuSection));
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.of(menuSection));
         given(menuRepository.save(any(Menu.class))).willReturn(menu);
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(menuSection.getRestaurant(), user.getId());
 
         // when
-        restaurantCommandService.createMenu(1L, command, user);
+        restaurantCommandService.createMenu(menuSectionId, command, user);
 
         // then
         verify(menuRepository, times(1)).save(any(Menu.class));
@@ -497,12 +519,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 메뉴를 생성하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void createMenu_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
+        Long menuSectionId = 1L;
         MenuCreateCommand command = new MenuCreateCommand("치킨", "맛있는 치킨", 15000, "이미지 URL");
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.of(menuSection));
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.of(menuSection));
         willThrow(new UnauthorizedRestaurantAccessException(menuSection.getRestaurant().getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(menuSection.getRestaurant(), notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.createMenu(1L, command, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.createMenu(menuSectionId, command, notOwnerUser));
 
         verify(menuRepository, times(0)).save(any(Menu.class));
         verify(publisher, times(0)).publishEvent(any(MenuCreateEvent.class));
@@ -512,11 +535,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 메뉴 섹션에 메뉴를 생성하려고 하면 MenuSectionNotFoundException 예외가 발생한다.")
     void createMenu_withNotExistingMenuSection_throwsMenuSectionNotFoundException() {
         // given
+        Long menuSectionId = 1L;
         MenuCreateCommand command = new MenuCreateCommand("치킨", "맛있는 치킨", 15000, "이미지 URL");
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.empty());
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(MenuSectionNotFoundException.class, () -> restaurantCommandService.createMenu(1L, command, user));
+        assertThrows(MenuSectionNotFoundException.class, () -> restaurantCommandService.createMenu(menuSectionId, command, user));
 
         verify(menuRepository, times(0)).save(any(Menu.class));
         verify(publisher, times(0)).publishEvent(any(MenuCreateEvent.class));
@@ -526,12 +550,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("이미 존재하는 메뉴 이름으로 메뉴를 생성하려고 하면 MenuAlreadyExistsException 예외가 발생한다.")
     void createMenu_withAlreadyExistingMenu_throwsMenuAlreadyExistsException() {
         // given
+        Long menuSectionId = 1L;
         MenuCreateCommand command = new MenuCreateCommand("치킨", "맛있는 치킨", 15000, "이미지 URL");
-        given(menuSectionRepository.findById(1L)).willReturn(Optional.of(menuSection));
-        given(menuRepository.existsByMenuSectionIdAndName(1L, command.getName())).willReturn(true);
+        given(menuSectionRepository.findById(menuSectionId)).willReturn(Optional.of(menuSection));
+        given(menuRepository.existsByMenuSectionIdAndName(menuSectionId, command.getName())).willReturn(true);
 
         // when & then
-        assertThrows(MenuAlreadyExistsException.class, () -> restaurantCommandService.createMenu(1L, command, user));
+        assertThrows(MenuAlreadyExistsException.class, () -> restaurantCommandService.createMenu(menuSectionId, command, user));
 
         verify(menuRepository, times(0)).save(any(Menu.class));
         verify(publisher, times(0)).publishEvent(any(MenuCreateEvent.class));
@@ -541,11 +566,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 메뉴를 삭제하면 메뉴가 삭제된다.")
     void deleteMenu_withValidInput_deletesMenu() {
         // given
-        given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
+        Long menuId = 1L;
+        given(menuRepository.findById(menuId)).willReturn(Optional.of(menu));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(menu.getRestaurant(), user.getId());
 
         // when
-        restaurantCommandService.deleteMenu(1L, user);
+        restaurantCommandService.deleteMenu(menuId, user);
 
         // then
         verify(menuRepository, times(1)).delete(menu);
@@ -556,11 +582,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 메뉴를 삭제하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void deleteMenu_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
-        given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
+        Long menuId = 1L;
+        given(menuRepository.findById(menuId)).willReturn(Optional.of(menu));
         willThrow(new UnauthorizedRestaurantAccessException(menu.getRestaurant().getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(menu.getRestaurant(), notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.deleteMenu(1L, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.deleteMenu(menuId, notOwnerUser));
 
         verify(menuRepository, times(0)).delete(menu);
         verify(publisher, times(0)).publishEvent(any(MenuDeleteEvent.class));
@@ -570,10 +597,11 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 메뉴를 삭제하려고 하면 MenuNotFoundException 예외가 발생한다.")
     void deleteMenu_withNotExistingMenu_throwsMenuNotFoundException() {
         // given
-        given(menuRepository.findById(1L)).willReturn(Optional.empty());
+        Long menuId = 1L;
+        given(menuRepository.findById(menuId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(MenuNotFoundException.class, () -> restaurantCommandService.deleteMenu(1L, user));
+        assertThrows(MenuNotFoundException.class, () -> restaurantCommandService.deleteMenu(menuId, user));
 
         verify(menuRepository, times(0)).delete(menu);
         verify(publisher, times(0)).publishEvent(any(MenuDeleteEvent.class));
@@ -583,12 +611,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 메뉴를 수정하면 메뉴가 수정된다.")
     void updateMenu_withValidInput_updatesMenu() {
         // given
+        Long menuId = 1L;
         MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000, "맛있는 햄버거", "수정된 이미지 URL");
-        given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
+        given(menuRepository.findById(menuId)).willReturn(Optional.of(menu));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(menu.getRestaurant(), user.getId());
 
         // when
-        restaurantCommandService.updateMenu(1L, command, user);
+        restaurantCommandService.updateMenu(menuId, command, user);
 
         // then
         assertThat(menu.getName()).isEqualTo("햄버거");
@@ -603,12 +632,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 메뉴를 수정하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void updateMenu_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
+        Long menuId = 1L;
         MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000, "맛있는 햄버거", "수정된 이미지 URL");
-        given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
+        given(menuRepository.findById(menuId)).willReturn(Optional.of(menu));
         willThrow(new UnauthorizedRestaurantAccessException(menu.getRestaurant().getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(menu.getRestaurant(), notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateMenu(1L, command, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateMenu(menuId, command, notOwnerUser));
 
         verify(publisher, times(0)).publishEvent(any(MenuUpdateEvent.class));
     }
@@ -617,11 +647,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 메뉴를 수정하려고 하면 MenuNotFoundException 예외가 발생한다.")
     void updateMenu_withNotExistingMenu_throwsMenuNotFoundException() {
         // given
+        Long menuId = 1L;
         MenuUpdateCommand command = new MenuUpdateCommand("햄버거", 10000, "맛있는 햄버거", "수정된 이미지 URL");
-        given(menuRepository.findById(1L)).willReturn(Optional.empty());
+        given(menuRepository.findById(menuId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(MenuNotFoundException.class, () -> restaurantCommandService.updateMenu(1L, command, user));
+        assertThrows(MenuNotFoundException.class, () -> restaurantCommandService.updateMenu(menuId, command, user));
 
         verify(publisher, times(0)).publishEvent(any(MenuUpdateEvent.class));
     }
@@ -630,13 +661,14 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 휴무 기간을 생성하면 휴무 기간이 생성된다.")
     void createClosedPeriod_withValidInput_createsClosedPeriod() {
         // given
+        Long restaurantId = 1L;
         ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2024-09-01", "2024-09-07", "휴가");
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         given(closedPeriodRepository.save(any(ClosedPeriod.class))).willReturn(closedPeriod);
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
 
         // when
-        restaurantCommandService.createClosedPeriod(1L, command, user);
+        restaurantCommandService.createClosedPeriod(restaurantId, command, user);
 
         // then
         verify(closedPeriodRepository, times(1)).save(any(ClosedPeriod.class));
@@ -647,12 +679,13 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 휴무 기간을 생성하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void createClosedPeriod_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
+        Long restaurantId = 1L;
         ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2024-09-01", "2024-09-07", "휴가");
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willThrow(new UnauthorizedRestaurantAccessException(restaurant.getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(restaurant, notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.createClosedPeriod(1L, command, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.createClosedPeriod(restaurantId, command, notOwnerUser));
 
         verify(closedPeriodRepository, times(0)).save(any(ClosedPeriod.class));
         verify(publisher, times(0)).publishEvent(any(ClosedPeriodCreateEvent.class));
@@ -662,11 +695,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 식당에 휴무 기간을 생성하려고 하면 RestaurantNotFoundException 예외가 발생한다.")
     void createClosedPeriod_withNotExistingRestaurant_throwsRestaurantNotFoundException() {
         // given
+        Long restaurantId = 1L;
         ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2024-09-01", "2024-09-07", "휴가");
-        given(restaurantRepository.findById(1L)).willReturn(Optional.empty());
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.createClosedPeriod(1L, command, user));
+        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.createClosedPeriod(restaurantId, command, user));
 
         verify(closedPeriodRepository, times(0)).save(any(ClosedPeriod.class));
         verify(publisher, times(0)).publishEvent(any(ClosedPeriodCreateEvent.class));
@@ -676,6 +710,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("겹치는 휴무 기간이 있는 경우 휴무 기간을 생성하려고 하면 ClosedPeriodOverlapException 예외가 발생한다.")
     void createClosedPeriod_withOverlappedClosedPeriod_throwsClosedPeriodOverlapException() {
         // given
+        Long restaurantId = 1L;
         ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2024-09-01", "2024-09-07", "휴가");
         ClosedPeriod overlappedClosedPeriod = ClosedPeriod.builder()
                 .startDate(LocalDate.of(2024, 9, 3))
@@ -683,13 +718,13 @@ class RestaurantCommandServiceTest {
                 .reason("휴가")
                 .restaurant(restaurant)
                 .build();
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
-        given(closedPeriodRepository.findAllByRestaurantId(1L)).willReturn(List.of(overlappedClosedPeriod));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
+        given(closedPeriodRepository.findAllByRestaurantId(restaurantId)).willReturn(List.of(overlappedClosedPeriod));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
         willThrow(new ClosedPeriodOverlapException(restaurant.getId(), command.getStartDate(), command.getEndDate())).given(restaurantValidator).validateNoOverlapClosedPeriod(List.of(overlappedClosedPeriod), command.getStartDate(), command.getEndDate(), restaurant.getId());
 
         // when & then
-        assertThrows(ClosedPeriodOverlapException.class, () -> restaurantCommandService.createClosedPeriod(1L, command, user));
+        assertThrows(ClosedPeriodOverlapException.class, () -> restaurantCommandService.createClosedPeriod(restaurantId, command, user));
 
         verify(closedPeriodRepository, times(0)).save(any(ClosedPeriod.class));
         verify(publisher, times(0)).publishEvent(any(ClosedPeriodCreateEvent.class));
@@ -699,13 +734,14 @@ class RestaurantCommandServiceTest {
     @DisplayName("오늘 날짜보다 이전인 휴무 기간을 생성하려고 하면 ClosedPeriodPastException 예외가 발생한다.")
     void createClosedPeriod_withPastClosedPeriod_throwsClosedPeriodPastException() {
         // given
+        Long restaurantId = 1L;
         ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2022-09-01", "2022-09-07", "휴가");
-        given(restaurantRepository.findById(1L)).willReturn(Optional.of(restaurant));
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(restaurant, user.getId());
         willThrow(new ClosedPeriodPastException(command.getStartDate())).given(restaurantValidator).validateClosePeriodNotBeforeToday(command.getStartDate());
 
         // when & then
-        assertThrows(ClosedPeriodPastException.class, () -> restaurantCommandService.createClosedPeriod(1L, command, user));
+        assertThrows(ClosedPeriodPastException.class, () -> restaurantCommandService.createClosedPeriod(restaurantId, command, user));
 
         verify(closedPeriodRepository, times(0)).save(any(ClosedPeriod.class));
         verify(publisher, times(0)).publishEvent(any(ClosedPeriodCreateEvent.class));
@@ -715,11 +751,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("유효한 입력으로 휴무 기간을 삭제하면 휴무 기간이 삭제된다.")
     void deleteClosedPeriod_withValidInput_deletesClosedPeriod() {
         // given
-        given(closedPeriodRepository.findById(1L)).willReturn(Optional.of(closedPeriod));
+        Long closedPeriodId = 1L;
+        given(closedPeriodRepository.findById(closedPeriodId)).willReturn(Optional.of(closedPeriod));
         willDoNothing().given(restaurantValidator).validateRestaurantOwner(closedPeriod.getRestaurant(), user.getId());
 
         // when
-        restaurantCommandService.deleteClosedPeriod(1L, user);
+        restaurantCommandService.deleteClosedPeriod(closedPeriodId, user);
 
         // then
         verify(closedPeriodRepository, times(1)).delete(closedPeriod);
@@ -730,11 +767,12 @@ class RestaurantCommandServiceTest {
     @DisplayName("식당 소유자가 아닌 사용자가 휴무 기간을 삭제하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void deleteClosedPeriod_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
-        given(closedPeriodRepository.findById(1L)).willReturn(Optional.of(closedPeriod));
+        Long closedPeriodId = 1L;
+        given(closedPeriodRepository.findById(closedPeriodId)).willReturn(Optional.of(closedPeriod));
         willThrow(new UnauthorizedRestaurantAccessException(closedPeriod.getRestaurant().getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(closedPeriod.getRestaurant(), notOwnerUser.getId());
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.deleteClosedPeriod(1L, notOwnerUser));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.deleteClosedPeriod(closedPeriodId, notOwnerUser));
 
         verify(closedPeriodRepository, times(0)).delete(closedPeriod);
         verify(publisher, times(0)).publishEvent(any(ClosedPeriodDeleteEvent.class));
@@ -744,10 +782,11 @@ class RestaurantCommandServiceTest {
     @DisplayName("존재하지 않는 휴무 기간을 삭제하려고 하면 ClosedPeriodNotFoundException 예외가 발생한다.")
     void deleteClosedPeriod_withNotExistingClosedPeriod_throwsClosedPeriodNotFoundException() {
         // given
-        given(closedPeriodRepository.findById(1L)).willReturn(Optional.empty());
+        Long closedPeriodId = 1L;
+        given(closedPeriodRepository.findById(closedPeriodId)).willReturn(Optional.empty());
 
         // when & then
-        assertThrows(ClosedPeriodNotFoundException.class, () -> restaurantCommandService.deleteClosedPeriod(1L, user));
+        assertThrows(ClosedPeriodNotFoundException.class, () -> restaurantCommandService.deleteClosedPeriod(closedPeriodId, user));
 
         verify(closedPeriodRepository, times(0)).delete(closedPeriod);
         verify(publisher, times(0)).publishEvent(any(ClosedPeriodDeleteEvent.class));

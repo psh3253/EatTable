@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,9 +25,7 @@ class RestaurantValidatorTest {
 
     @InjectMocks
     private RestaurantValidator restaurantValidator;
-
     private User user;
-    private User notOwnerUser;
     private Restaurant restaurant;
     private ClosedPeriod closedPeriod;
 
@@ -40,14 +39,6 @@ class RestaurantValidatorTest {
                 .role(Role.ROLE_USER)
                 .build();
         user.setIdForTest(1L);
-        notOwnerUser = User.builder()
-                .email("test2@test.com")
-                .password("test1234")
-                .nickname("테스트2")
-                .phoneNumber("010-5678-1234")
-                .role(Role.ROLE_USER)
-                .build();
-        notOwnerUser.setIdForTest(2L);
         restaurant = Restaurant.builder()
                 .name("테스트 식당")
                 .description("맛있는 식당")
@@ -73,40 +64,44 @@ class RestaurantValidatorTest {
     @DisplayName("식당 소유자가 맞으면 예외가 발생하지 않는다.")
     void validateRestaurantOwner_withValidInput_notThrowException() {
         // given
+        Long userId = 1L;
 
-        // when
-        restaurantValidator.validateRestaurantOwner(restaurant, user.getId());
-
-        // then
+        // when & then
+        assertDoesNotThrow(() -> restaurantValidator.validateRestaurantOwner(restaurant, userId));
     }
 
     @Test
     @DisplayName("식당 소유자가 아니면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
     void validateRestaurantOwner_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
         // given
+        Long userId = 2L;
 
         // when & then
-        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantValidator.validateRestaurantOwner(restaurant, notOwnerUser.getId()));
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantValidator.validateRestaurantOwner(restaurant, userId));
     }
 
     @Test
     @DisplayName("휴뮤 기간이 겹치지 않으면 예외가 발생하지 않는다.")
     void validateNoOverlapClosedPeriod_withValidInput_notThrowException() {
         // given
+        Long restaurantId = 1L;
+        String startDate = "2024-09-08";
+        String endDate = "2024-09-14";
 
-        // when
-        restaurantValidator.validateNoOverlapClosedPeriod(List.of(closedPeriod), "2024-09-08", "2024-09-14", restaurant.getId());
-
-        // then
+        // when & then
+        assertDoesNotThrow(() -> restaurantValidator.validateNoOverlapClosedPeriod(List.of(closedPeriod), startDate, endDate, restaurantId));
     }
 
     @Test
     @DisplayName("휴뮤 기간이 겹치면 ClosedPeriodOverlapException 예외가 발생한다.")
     void validateNoOverlapClosedPeriod_withOverlapClosedPeriod_throwsClosedPeriodOverlapException() {
         // given
+        Long restaurantId = 1L;
+        String startDate = "2024-09-05";
+        String endDate = "2024-09-10";
 
         // when & then
-        assertThrows(ClosedPeriodOverlapException.class, () -> restaurantValidator.validateNoOverlapClosedPeriod(List.of(closedPeriod), "2024-09-05", "2024-09-10", restaurant.getId()));
+        assertThrows(ClosedPeriodOverlapException.class, () -> restaurantValidator.validateNoOverlapClosedPeriod(List.of(closedPeriod), startDate, endDate, restaurantId));
     }
 
 
@@ -114,19 +109,19 @@ class RestaurantValidatorTest {
     @DisplayName("휴뮤 기간이 오늘 이전이 아니면 예외가 발생하지 않는다.")
     void validateClosePeriodNotBeforeToday_withValidInput_notThrowException() {
         // given
+        String startDate = "2024-09-01";
 
-        // when
-        restaurantValidator.validateClosePeriodNotBeforeToday("2024-09-01");
-
-        // then
+        // when & then
+        assertDoesNotThrow(() -> restaurantValidator.validateClosePeriodNotBeforeToday(startDate));
     }
 
     @Test
     @DisplayName("휴뮤 기간이 오늘 이전이면 ClosedPeriodPastException 예외가 발생한다.")
     void validateClosePeriodNotBeforeToday_withPastDate_throwsClosedPeriodPastException() {
         // given
+        String startDate = "2023-09-01";
 
         // when & then
-        assertThrows(ClosedPeriodPastException.class, () -> restaurantValidator.validateClosePeriodNotBeforeToday("2023-09-01"));
+        assertThrows(ClosedPeriodPastException.class, () -> restaurantValidator.validateClosePeriodNotBeforeToday(startDate));
     }
 }

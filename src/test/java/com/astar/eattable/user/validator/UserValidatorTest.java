@@ -42,19 +42,21 @@ class UserValidatorTest {
     @DisplayName("비밀번호가 일치하면 예외가 발생하지 않는다.")
     void validatePassword_withValidPassword_notThrowException() {
         // given
-        given(passwordEncoder.matches("test1234", "encodedPassword")).willReturn(true);
+        String password = "test1234";
+        given(passwordEncoder.matches(password, "encodedPassword")).willReturn(true);
 
         // when & then
-        assertDoesNotThrow(() -> userValidator.validatePassword("test1234", user));
+        assertDoesNotThrow(() -> userValidator.validatePassword(password, user));
     }
 
     @Test
     @DisplayName("비밀번호가 일치하지 않으면 PasswordMismatchException이 발생한다.")
     void validatePassword_withInvalidPassword_throwPasswordMismatchException() {
         // given
-        given(passwordEncoder.matches("test1234", "encodedPassword")).willReturn(false);
+        String password = "test1234";
+        given(passwordEncoder.matches(password, "encodedPassword")).willReturn(false);
 
         // when & then
-        assertThrows(PasswordMismatchException.class, () -> userValidator.validatePassword("test1234", user));
+        assertThrows(PasswordMismatchException.class, () -> userValidator.validatePassword(password, user));
     }
 }

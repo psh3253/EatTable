@@ -109,11 +109,13 @@ class RestaurantQueryServiceTest {
     @DisplayName("유효한 위치로 주변 식당을 조회하면 식당 목록을 반환한다.")
     void getNearbyRestaurants_withValidLocation_thenReturnRestaurantListDTO() {
         // given
+        double longitude = 37.123456;
+        double latitude = 127.123456;
         List<RestaurantListDTO> restaurantListDTOs = List.of(new RestaurantListDTO(restaurantDocument));
-        given(restaurantMongoRepository.findByLocationNear(37.123456, 127.123456, 2000)).willReturn(List.of(restaurantDocument));
+        given(restaurantMongoRepository.findByLocationNear(longitude, latitude, 2000)).willReturn(List.of(restaurantDocument));
 
         // when
-        List<RestaurantListDTO> resultDTOs = restaurantQueryService.getNearbyRestaurants(37.123456, 127.123456);
+        List<RestaurantListDTO> resultDTOs = restaurantQueryService.getNearbyRestaurants(longitude, latitude);
 
         // then
         assertThat(resultDTOs.get(0).getId()).isEqualTo(restaurantListDTOs.get(0).getId());
@@ -160,11 +162,12 @@ class RestaurantQueryServiceTest {
     @DisplayName("유효한 식당 ID로 식당을 조회하면 식당 상세 정보를 반환한다.")
     void getRestaurant_withValidRestaurantId_thenReturnRestaurantDetailsDTO() {
         // given
+        Long restaurantId = 1L;
         RestaurantDetailsDTO restaurantDetailsDTO = new RestaurantDetailsDTO(restaurantDocument);
-        given(restaurantMongoRepository.findById(1L)).willReturn(Optional.of(restaurantDocument));
+        given(restaurantMongoRepository.findById(restaurantId)).willReturn(Optional.of(restaurantDocument));
 
         // when
-        RestaurantDetailsDTO resultDTO = restaurantQueryService.getRestaurant(1L);
+        RestaurantDetailsDTO resultDTO = restaurantQueryService.getRestaurant(restaurantId);
 
         // then
         assertThat(resultDTO.getId()).isEqualTo(restaurantDetailsDTO.getId());
@@ -189,9 +192,10 @@ class RestaurantQueryServiceTest {
     @DisplayName("유효한 식당 ID로 메뉴 섹션을 초기화하면 메뉴 섹션 맵 Document를 저장한다.")
     void initMenuSections_withValidRestaurantId_thenSaveMenuSectionMapDocument() {
         // given
+        Long restaurantId = 1L;
 
         // when
-        restaurantQueryService.initMenuSections(1L);
+        restaurantQueryService.initMenuSections(restaurantId);
 
         // then
         verify(menuSectionMapMongoRepository, times(1)).save(any(MenuSectionMapDocument.class));
@@ -289,10 +293,11 @@ class RestaurantQueryServiceTest {
     @DisplayName("유효한 식당 ID로 메뉴 섹션을 조회하면 메뉴 섹션 DTO 목록을 반환한다.")
     void getMenuSections_withValidRestaurantId_thenReturnMenuSectionDTOs() {
         // given
-        given(menuSectionMapMongoRepository.findByRestaurantId(1L)).willReturn(Optional.of(menuSectionMapDocument));
+        Long restaurantId = 1L;
+        given(menuSectionMapMongoRepository.findByRestaurantId(restaurantId)).willReturn(Optional.of(menuSectionMapDocument));
 
         // when
-        Map<Long, MenuSectionDTO> resultDTOs = restaurantQueryService.getMenuSections(1L);
+        Map<Long, MenuSectionDTO> resultDTOs = restaurantQueryService.getMenuSections(restaurantId);
 
         // then
         assertThat(resultDTOs.size()).isEqualTo(1);
@@ -335,11 +340,12 @@ class RestaurantQueryServiceTest {
     @DisplayName("유효한 식당 ID로 휴무일을 조회하면 휴무일 목록을 반환한다.")
     void getClosedPeriods_withValidRestaurantId_thenReturnClosedPeriodListDTOs() {
         // given
-        ClosedPeriodDocument closedPeriodDocument = new ClosedPeriodDocument(1L, 1L, "2024-09-01", "2024-09-07", "휴가");
-        given(closedPeriodMongoRepository.findAllByRestaurantId(1L)).willReturn(closedPeriodDocuments);
+        Long restaurantId = 1L;
+        ClosedPeriodDocument closedPeriodDocument = new ClosedPeriodDocument(1L, restaurantId, "2024-09-01", "2024-09-07", "휴가");
+        given(closedPeriodMongoRepository.findAllByRestaurantId(restaurantId)).willReturn(closedPeriodDocuments);
 
         // when
-        List<ClosedPeriodListDTO> resultDTOs = restaurantQueryService.getClosedPeriods(1L);
+        List<ClosedPeriodListDTO> resultDTOs = restaurantQueryService.getClosedPeriods(restaurantId);
 
         // then
         assertThat(resultDTOs.size()).isEqualTo(1);
