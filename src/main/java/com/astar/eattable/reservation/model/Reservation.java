@@ -31,6 +31,8 @@ public class Reservation {
 
     private String request;
 
+    private boolean canceled;
+
     @Builder
     public Reservation(Restaurant restaurant, TableAvailability tableAvailability, User user, Integer capacity, String request) {
         this.restaurant = restaurant;
@@ -38,5 +40,10 @@ public class Reservation {
         this.user = user;
         this.capacity = capacity;
         this.request = request;
+        this.canceled = false;
+    }
+
+    public void cancel() {
+        this.canceled = true;
     }
 }

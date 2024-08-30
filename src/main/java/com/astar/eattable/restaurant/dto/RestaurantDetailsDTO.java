@@ -19,6 +19,8 @@ public class RestaurantDetailsDTO {
     private final String address;
     private final Double reviewScore;
     private final Long reviewCount;
+    private final Long userId;
+    private final String userNickname;
     private final List<BusinessHoursDTO> businessHours;
 
     public RestaurantDetailsDTO(RestaurantDocument document) {
@@ -31,6 +33,8 @@ public class RestaurantDetailsDTO {
         this.address = document.getAddress();
         this.reviewScore = document.getReviewScore();
         this.reviewCount = document.getReviewCount();
+        this.userId = document.getUserId();
+        this.userNickname = document.getUserNickname();
         this.businessHours = document.getBusinessHours().stream()
                 .map(BusinessHoursDTO::new)
                 .toList();

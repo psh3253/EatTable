@@ -53,4 +53,8 @@ public class TableAvailability {
     public void decreaseRemainingTableCount() {
         this.remainingTableCount--;
     }
+
+    public void increaseRemainingTableCount() {
+        this.remainingTableCount++;
+    }
 }

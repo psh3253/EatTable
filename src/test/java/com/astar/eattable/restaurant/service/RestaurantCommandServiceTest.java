@@ -378,7 +378,7 @@ class RestaurantCommandServiceTest {
     @DisplayName("이미 존재하는 메뉴 섹션 이름으로 메뉴 섹션을 생성하려고 하면 MenuSectionAlreadyExistsException 예외가 발생한다.")
     void createMenuSection_withAlreadyExistingMenuSection_throwsMenuSectionAlreadyExistsException() {
         // given
-        Long  restaurantId = 1L;
+        Long restaurantId = 1L;
         MenuSectionCreateCommand command = new MenuSectionCreateCommand("메인 메뉴");
         given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
         given(menuSectionRepository.existsByRestaurantIdAndName(restaurantId, command.getName())).willReturn(true);

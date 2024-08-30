@@ -3,10 +3,12 @@ package com.astar.eattable.reservation.listener;
 import com.astar.eattable.common.dto.EventTypes;
 import com.astar.eattable.common.model.ExternalEvent;
 import com.astar.eattable.common.service.EventService;
+import com.astar.eattable.reservation.event.ReservationCancelEvent;
 import com.astar.eattable.reservation.event.ReservationCreateEvent;
 import com.astar.eattable.reservation.event.TableCountUpdateEvent;
-import com.astar.eattable.reservation.payload.ReservationCreatePayload;
-import com.astar.eattable.reservation.payload.TableCountUpdatePayload;
+import com.astar.eattable.reservation.payload.ReservationCancelEventPayload;
+import com.astar.eattable.reservation.payload.ReservationCreateEventPayload;
+import com.astar.eattable.reservation.payload.TableCountUpdateEventPayload;
 import com.astar.eattable.reservation.service.ReservationCommandService;
 import com.astar.eattable.reservation.service.ReservationQueryService;
 import com.astar.eattable.restaurant.event.RestaurantCreateEvent;
@@ -42,7 +44,7 @@ public class ReservationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleTableCountUpdateEvent(TableCountUpdateEvent event) throws JsonProcessingException {
-        eventService.saveExternalEvent(EventTypes.TABLE_COUNT_UPDATED, objectMapper.writeValueAsString(TableCountUpdatePayload.from(event)), event.getUser());
+        eventService.saveExternalEvent(EventTypes.TABLE_COUNT_UPDATED, objectMapper.writeValueAsString(TableCountUpdateEventPayload.from(event)), event.getUser());
     }
 
     @Async
@@ -53,7 +55,12 @@ public class ReservationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleReservationCreateEvent(ReservationCreateEvent event) throws JsonProcessingException {
-        eventService.saveExternalEvent(EventTypes.RESERVATION_CREATED, objectMapper.writeValueAsString(ReservationCreatePayload.from(event)), event.getUser());
+        eventService.saveExternalEvent(EventTypes.RESERVATION_CREATED, objectMapper.writeValueAsString(ReservationCreateEventPayload.from(event)), event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handleReservationCancelEvent(ReservationCancelEvent event) throws JsonProcessingException {
+        eventService.saveExternalEvent(EventTypes.RESERVATION_CANCELLED, objectMapper.writeValueAsString(ReservationCancelEventPayload.from(event)), event.getUser());
     }
 
     @KafkaListener(topics = "reservation-events", groupId = "reservation-service")
@@ -67,10 +74,13 @@ public class ReservationEventListener {
     public void handleReservationEvent(ExternalEvent message) throws JsonProcessingException {
         switch (message.getEventType()) {
             case EventTypes.TABLE_COUNT_UPDATED:
-                reservationQueryService.updateTableAvailability(objectMapper.readValue(message.getPayload(), TableCountUpdatePayload.class));
+                reservationQueryService.updateTableAvailability(objectMapper.readValue(message.getPayload(), TableCountUpdateEventPayload.class));
                 break;
             case EventTypes.RESERVATION_CREATED:
-                reservationQueryService.createReservation(objectMapper.readValue(message.getPayload(), ReservationCreatePayload.class));
+                reservationQueryService.createReservation(objectMapper.readValue(message.getPayload(), ReservationCreateEventPayload.class));
+                break;
+            case EventTypes.RESERVATION_CANCELLED:
+                reservationQueryService.cancelReservation(objectMapper.readValue(message.getPayload(), ReservationCancelEventPayload.class));
                 break;
         }
     }

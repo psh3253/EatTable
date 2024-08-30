@@ -6,16 +6,14 @@ import com.astar.eattable.reservation.document.MonthlyAvailabilityDocument;
 import com.astar.eattable.reservation.document.ReservationDocument;
 import com.astar.eattable.reservation.document.TableAvailabilityDocument;
 import com.astar.eattable.reservation.document.TimeAvailabilityDocument;
-import com.astar.eattable.reservation.dto.MonthlyAvailabilityDTO;
-import com.astar.eattable.reservation.dto.MyReservationDetailsDTO;
-import com.astar.eattable.reservation.dto.MyReservationListDTO;
-import com.astar.eattable.reservation.dto.TableAvailabilityDTO;
+import com.astar.eattable.reservation.dto.*;
 import com.astar.eattable.reservation.exception.MonthlyAvailabilityNotFoundException;
 import com.astar.eattable.reservation.exception.ReservationNotFoundException;
 import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
 import com.astar.eattable.reservation.exception.TimeAvailabilityNotFoundException;
-import com.astar.eattable.reservation.payload.ReservationCreatePayload;
-import com.astar.eattable.reservation.payload.TableCountUpdatePayload;
+import com.astar.eattable.reservation.payload.ReservationCancelEventPayload;
+import com.astar.eattable.reservation.payload.ReservationCreateEventPayload;
+import com.astar.eattable.reservation.payload.TableCountUpdateEventPayload;
 import com.astar.eattable.reservation.repository.MonthlyAvailabilityMongoRepository;
 import com.astar.eattable.reservation.repository.ReservationMongoRepository;
 import com.astar.eattable.reservation.repository.TableAvailabilityMongoRepository;
@@ -25,6 +23,7 @@ import com.astar.eattable.restaurant.document.RestaurantDocument;
 import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
 import com.astar.eattable.restaurant.repository.ClosedPeriodMongoRepository;
 import com.astar.eattable.restaurant.repository.RestaurantMongoRepository;
+import com.astar.eattable.restaurant.validator.RestaurantValidator;
 import com.astar.eattable.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +47,7 @@ public class ReservationQueryService {
     private final ReservationMongoRepository reservationMongoRepository;
     private final CommonService commonService;
     private final ReservationValidator reservationValidator;
+    private final RestaurantValidator restaurantValidator;
 
     @Value("${max.reservation.period.days}")
     private int MAX_RESERVATION_PERIOD_DAYS;
@@ -154,7 +154,7 @@ public class ReservationQueryService {
                 .getTimeAvailabilityDocuments().stream().map(TableAvailabilityDTO::new).collect(Collectors.toList());
     }
 
-    public void updateTableAvailability(TableCountUpdatePayload payload) {
+    public void updateTableAvailability(TableCountUpdateEventPayload payload) {
         List<TableAvailabilityDocument> tableAvailabilityDocuments = tableAvailabilityMongoRepository.findAllByRestaurantIdAndCapacity(payload.getRestaurantId(), payload.getCommand().getCapacity());
         for (TableAvailabilityDocument tableAvailabilityDocument : tableAvailabilityDocuments) {
             for (TimeAvailabilityDocument timeAvailabilityDocument : tableAvailabilityDocument.getTimeAvailabilityDocuments()) {
@@ -165,7 +165,7 @@ public class ReservationQueryService {
         tableAvailabilityMongoRepository.saveAll(tableAvailabilityDocuments);
     }
 
-    public void createReservation(ReservationCreatePayload payload) {
+    public void createReservation(ReservationCreateEventPayload payload) {
         ReservationDocument reservationDocument = new ReservationDocument(payload);
         reservationMongoRepository.save(reservationDocument);
 
@@ -178,13 +178,37 @@ public class ReservationQueryService {
         tableAvailabilityMongoRepository.save(tableAvailabilityDocument);
     }
 
-    public List<MyReservationListDTO> getMyReservations(User currentUser) {
-        return reservationMongoRepository.findAllByUserId(currentUser.getId()).stream().map(MyReservationListDTO::new).collect(Collectors.toList());
+    public List<ReservationListDTO> getMyReservations(Long restaurantId, String startDate, String endDate, User currentUser) {
+        return reservationMongoRepository.searchByWhere(new ReservationSearchCondition(restaurantId, startDate, endDate, currentUser.getId()))
+                .stream().map(ReservationListDTO::new).collect(Collectors.toList());
     }
 
-    public MyReservationDetailsDTO getMyReservation(Long reservationId, User currentUser) {
+    public List<ReservationListDTO> getReservations(Long restaurantId, String startDate, String endDate, Long userId, User currentUser) {
+        RestaurantDocument restaurantDocument = restaurantMongoRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
+        restaurantValidator.validateRestaurantOwner(restaurantDocument, currentUser.getId());
+
+        return reservationMongoRepository.searchByWhere(new ReservationSearchCondition(restaurantId, startDate, endDate, userId))
+                .stream().map(ReservationListDTO::new).collect(Collectors.toList());
+    }
+
+    public ReservationDetailsDTO getReservation(Long reservationId, User currentUser) {
         ReservationDocument reservationDocument = reservationMongoRepository.findById(reservationId).orElseThrow(() -> new ReservationNotFoundException(reservationId));
-        reservationValidator.validateReservationOwner(reservationDocument, currentUser.getId());
-        return new MyReservationDetailsDTO(reservationDocument);
+        RestaurantDocument restaurantDocument = restaurantMongoRepository.findById(reservationDocument.getRestaurantId()).orElseThrow(() -> new RestaurantNotFoundException(reservationDocument.getRestaurantId()));
+        reservationValidator.validateReservationOwnerOrRestaurantOwner(reservationDocument, restaurantDocument, currentUser.getId());
+        return new ReservationDetailsDTO(reservationDocument);
+    }
+
+    public void cancelReservation(ReservationCancelEventPayload payload) {
+        ReservationDocument reservationDocument = reservationMongoRepository.findById(payload.getReservationId()).orElseThrow(() -> new ReservationNotFoundException(payload.getReservationId()));
+        reservationMongoRepository.delete(reservationDocument);
+
+        TableAvailabilityDocument tableAvailabilityDocument = tableAvailabilityMongoRepository.findByRestaurantIdAndDateAndCapacity(reservationDocument.getRestaurantId(), reservationDocument.getDate(), reservationDocument.getCapacity())
+                .orElseThrow(() -> new TableAvailabilityNotFoundException(reservationDocument.getRestaurantId(), reservationDocument.getDate(), reservationDocument.getCapacity()));
+
+        TimeAvailabilityDocument timeAvailabilityDocument = tableAvailabilityDocument.getTimeAvailabilityDocuments().stream()
+                .filter(timeAvailability -> timeAvailability.getTime().equals(reservationDocument.getTime())).findFirst()
+                .orElseThrow(() -> new TimeAvailabilityNotFoundException(reservationDocument.getRestaurantId(), reservationDocument.getDate(), reservationDocument.getTime(), reservationDocument.getCapacity()));
+        timeAvailabilityDocument.increaseRemainCount();
+        tableAvailabilityMongoRepository.save(tableAvailabilityDocument);
     }
 }

@@ -3,8 +3,8 @@ package com.astar.eattable.reservation.controller;
 import com.astar.eattable.reservation.command.ReservationCreateCommand;
 import com.astar.eattable.reservation.command.TableCountUpdateCommand;
 import com.astar.eattable.reservation.dto.MonthlyAvailabilityDTO;
-import com.astar.eattable.reservation.dto.MyReservationDetailsDTO;
-import com.astar.eattable.reservation.dto.MyReservationListDTO;
+import com.astar.eattable.reservation.dto.ReservationDetailsDTO;
+import com.astar.eattable.reservation.dto.ReservationListDTO;
 import com.astar.eattable.reservation.dto.TableAvailabilityDTO;
 import com.astar.eattable.reservation.service.ReservationCommandService;
 import com.astar.eattable.reservation.service.ReservationQueryService;
@@ -45,13 +45,35 @@ public class ReservationController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/my-reservations")
-    public ResponseEntity<List<MyReservationListDTO>> getMyReservations(@CurrentUser User currentUser) {
-        return ResponseEntity.ok(reservationQueryService.getMyReservations(currentUser));
+    @PutMapping("/{reservationId}/cancel")
+    public ResponseEntity<Void> cancelReservation(@PathVariable Long reservationId, @CurrentUser User currentUser) {
+        reservationCommandService.cancelReservation(reservationId, currentUser);
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/my-reservations/{reservationId}")
-    public ResponseEntity<MyReservationDetailsDTO> getMyReservation(@PathVariable Long reservationId, @CurrentUser User currentUser) {
-        return ResponseEntity.ok(reservationQueryService.getMyReservation(reservationId, currentUser));
+    @GetMapping("/my-reservations")
+    public ResponseEntity<List<ReservationListDTO>> getMyReservations(
+            @RequestParam(required = false) Long restaurantId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @CurrentUser User currentUser
+    ) {
+        return ResponseEntity.ok(reservationQueryService.getMyReservations(restaurantId, startDate, endDate, currentUser));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ReservationListDTO>> getReservations(
+            @RequestParam Long restaurantId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Long userId,
+            @CurrentUser User currentUser
+    ) {
+        return ResponseEntity.ok(reservationQueryService.getReservations(restaurantId, startDate, endDate, userId, currentUser));
+    }
+
+    @GetMapping("/{reservationId}")
+    public ResponseEntity<ReservationDetailsDTO> getMyReservation(@PathVariable Long reservationId, @CurrentUser User currentUser) {
+        return ResponseEntity.ok(reservationQueryService.getReservation(reservationId, currentUser));
     }
 }

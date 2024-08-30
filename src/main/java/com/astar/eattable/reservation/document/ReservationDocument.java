@@ -1,6 +1,6 @@
 package com.astar.eattable.reservation.document;
 
-import com.astar.eattable.reservation.payload.ReservationCreatePayload;
+import com.astar.eattable.reservation.payload.ReservationCreateEventPayload;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +31,7 @@ public class ReservationDocument {
 
     private String request;
 
-    public ReservationDocument(ReservationCreatePayload payload) {
+    public ReservationDocument(ReservationCreateEventPayload payload) {
         this.id = payload.getReservationId();
         this.restaurantId = payload.getCommand().getRestaurantId();
         this.restaurantName = payload.getRestaurantName();

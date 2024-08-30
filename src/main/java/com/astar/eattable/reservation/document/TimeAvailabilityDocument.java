@@ -16,6 +16,10 @@ public class TimeAvailabilityDocument {
         this.remainCount--;
     }
 
+    public void increaseRemainCount() {
+        this.remainCount++;
+    }
+
     public void updateRemainCount(Integer count) {
         this.remainCount = count;
     }

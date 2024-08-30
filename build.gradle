@@ -32,16 +32,31 @@ dependencies {
     implementation 'org.apache.kafka:kafka-clients'
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.redisson:redisson:3.17.1'
+    implementation ('com.querydsl:querydsl-mongodb:5.0.0') {
+        exclude group: 'org.mongodb', module: 'mongo-java-driver'
+    }
+    implementation 'com.querydsl:querydsl-core:5.0.0'
+    implementation 'com.querydsl:querydsl-apt:5.0.0'
+
+    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0'
+    annotationProcessor 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.redisson:redisson:3.17.1'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+compileJava {
+    options.compilerArgs += [
+            "-processor", 'lombok.launch.AnnotationProcessorHider$AnnotationProcessor,org.springframework.data.mongodb.repository.support.MongoAnnotationProcessor',
+    ]
 }

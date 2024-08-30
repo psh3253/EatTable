@@ -30,6 +30,8 @@ public class RestaurantDocument {
     private String address;
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
     private GeoJsonPoint location;
+    private Long userId;
+    private String userNickname;
     private Double reviewScore = 0.0;
     private Long reviewCount = 0L;
     private List<BusinessHoursDocument> businessHours;
@@ -43,6 +45,8 @@ public class RestaurantDocument {
         this.phone = payload.getCommand().getPhone();
         this.address = payload.getCommand().getAddress();
         this.location = new GeoJsonPoint(payload.getCommand().getLongitude(), payload.getCommand().getLatitude());
+        this.userId = payload.getUserId();
+        this.userNickname = payload.getUserNickname();
         this.businessHours = payload.getCommand().getBusinessHours().stream().map(BusinessHoursDocument::new).collect(Collectors.toList());
     }
 

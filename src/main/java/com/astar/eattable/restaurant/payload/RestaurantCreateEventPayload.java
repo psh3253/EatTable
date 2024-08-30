@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 public class RestaurantCreateEventPayload {
     private Long restaurantId;
     private RestaurantCreateCommand command;
+    private Long userId;
+    private String userNickname;
 
     public static RestaurantCreateEventPayload from(RestaurantCreateEvent event) {
-        return new RestaurantCreateEventPayload(event.getRestaurantId(), event.getCommand());
+        return new RestaurantCreateEventPayload(event.getRestaurantId(), event.getCommand(), event.getUser().getId(), event.getUser().getNickname());
     }
 }

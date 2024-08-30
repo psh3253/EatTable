@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @AllArgsConstructor
-public class ReservationCreatePayload {
+public class ReservationCreateEventPayload {
     private Long reservationId;
 
     private ReservationCreateCommand command;
@@ -20,7 +20,7 @@ public class ReservationCreatePayload {
 
     private String userNickname;
 
-    public static ReservationCreatePayload from(ReservationCreateEvent event) {
-        return new ReservationCreatePayload(event.getReservationId(), event.getCommand(), event.getRestaurantName(), event.getUser().getId(), event.getUser().getNickname());
+    public static ReservationCreateEventPayload from(ReservationCreateEvent event) {
+        return new ReservationCreateEventPayload(event.getReservationId(), event.getCommand(), event.getRestaurantName(), event.getUser().getId(), event.getUser().getNickname());
     }
 }

@@ -314,7 +314,7 @@ class RestaurantQueryServiceTest {
     void createClosedPeriod_withValidPayload_thenSaveClosedPeriodDocument() {
         // given
         ClosedPeriodCreateCommand command = new ClosedPeriodCreateCommand("2024-09-01", "2024-09-07", "휴가");
-        ClosedPeriodCreateEventPayload payload = new ClosedPeriodCreateEventPayload(1L,1L, command);
+        ClosedPeriodCreateEventPayload payload = new ClosedPeriodCreateEventPayload(1L, 1L, command);
 
         // when
         restaurantQueryService.createClosedPeriod(payload);

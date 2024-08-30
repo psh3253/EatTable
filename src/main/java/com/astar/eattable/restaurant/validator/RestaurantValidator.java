@@ -1,5 +1,6 @@
 package com.astar.eattable.restaurant.validator;
 
+import com.astar.eattable.restaurant.document.RestaurantDocument;
 import com.astar.eattable.restaurant.exception.ClosedPeriodOverlapException;
 import com.astar.eattable.restaurant.exception.ClosedPeriodPastException;
 import com.astar.eattable.restaurant.exception.UnauthorizedRestaurantAccessException;
@@ -15,6 +16,12 @@ public class RestaurantValidator {
     public void validateRestaurantOwner(Restaurant restaurant, Long userId) {
         if (!restaurant.getUser().getId().equals(userId)) {
             throw new UnauthorizedRestaurantAccessException(restaurant.getId(), userId);
+        }
+    }
+
+    public void validateRestaurantOwner(RestaurantDocument document, Long userId) {
+        if (!document.getUserId().equals(userId)) {
+            throw new UnauthorizedRestaurantAccessException(document.getId(), userId);
         }
     }
 

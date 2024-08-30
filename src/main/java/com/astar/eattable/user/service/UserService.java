@@ -2,7 +2,6 @@ package com.astar.eattable.user.service;
 
 import com.astar.eattable.user.dto.LoginDTO;
 import com.astar.eattable.user.dto.SignUpDTO;
-import com.astar.eattable.user.exception.PasswordMismatchException;
 import com.astar.eattable.user.exception.UserAlreadyExistsException;
 import com.astar.eattable.user.exception.UserNotFoundException;
 import com.astar.eattable.user.model.User;

@@ -5,8 +5,10 @@ import com.astar.eattable.common.lock.DistributedLock;
 import com.astar.eattable.common.service.CommonService;
 import com.astar.eattable.reservation.command.ReservationCreateCommand;
 import com.astar.eattable.reservation.command.TableCountUpdateCommand;
+import com.astar.eattable.reservation.event.ReservationCancelEvent;
 import com.astar.eattable.reservation.event.ReservationCreateEvent;
 import com.astar.eattable.reservation.event.TableCountUpdateEvent;
+import com.astar.eattable.reservation.exception.ReservationNotFoundException;
 import com.astar.eattable.reservation.exception.RestaurantTableNotFoundException;
 import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
 import com.astar.eattable.reservation.model.Reservation;
@@ -151,7 +153,7 @@ public class ReservationCommandService {
         List<TableAvailability> tableAvailabilities = tableAvailabilityRepository.findAllByRestaurantIdAndRestaurantTableCapacity(restaurantId, capacity);
         for (TableAvailability tableAvailability : tableAvailabilities) {
             Integer maxCount = tableAvailability.getRestaurantTable().getCount();
-            Integer usedCount = reservationRepository.countByTableAvailabilityId(tableAvailability.getId());
+            Integer usedCount = reservationRepository.countByTableAvailabilityIdAndCanceledFalse(tableAvailability.getId());
             if (maxCount > usedCount) {
                 tableAvailability.updateRemainingTableCount(maxCount - usedCount);
             }
@@ -167,5 +169,17 @@ public class ReservationCommandService {
         tableAvailability.decreaseRemainingTableCount();
 
         publisher.publishEvent(new ReservationCreateEvent(reservation.getId(), command, reservation.getRestaurant().getName(), currentUser));
+    }
+
+    @Transactional
+    public void cancelReservation(Long reservationId, User currentUser) {
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new ReservationNotFoundException(reservationId));
+        reservationValidator.validateReservationOwnerOrRestaurantOwner(reservation, currentUser.getId());
+        reservation.cancel();
+
+        TableAvailability tableAvailability = reservation.getTableAvailability();
+        tableAvailability.increaseRemainingTableCount();
+
+        publisher.publishEvent(new ReservationCancelEvent(reservationId, currentUser));
     }
 }

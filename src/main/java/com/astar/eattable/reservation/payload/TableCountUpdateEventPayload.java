@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @AllArgsConstructor
-public class TableCountUpdatePayload {
+public class TableCountUpdateEventPayload {
     private Long restaurantId;
 
     private TableCountUpdateCommand command;
 
-    public static TableCountUpdatePayload from(TableCountUpdateEvent event) {
-        return new TableCountUpdatePayload(event.getRestaurantId(), event.getCommand());
+    public static TableCountUpdateEventPayload from(TableCountUpdateEvent event) {
+        return new TableCountUpdateEventPayload(event.getRestaurantId(), event.getCommand());
     }
 }
