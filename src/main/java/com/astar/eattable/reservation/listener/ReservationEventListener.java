@@ -9,6 +9,7 @@ import com.astar.eattable.reservation.payload.ReservationCancelEventPayload;
 import com.astar.eattable.reservation.payload.ReservationCreateEventPayload;
 import com.astar.eattable.reservation.service.ReservationCommandService;
 import com.astar.eattable.reservation.service.ReservationQueryService;
+import com.astar.eattable.reservation.service.TableAvailabilityCommandService;
 import com.astar.eattable.restaurant.event.RestaurantCreateEvent;
 import com.astar.eattable.restaurant.event.TableCountUpdateEvent;
 import com.astar.eattable.restaurant.payload.ClosedPeriodCreateEventPayload;
@@ -29,6 +30,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class ReservationEventListener {
     private final ReservationCommandService reservationCommandService;
+    private final TableAvailabilityCommandService tableAvailabilityCommandService;
     private final ReservationQueryService reservationQueryService;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
@@ -41,7 +43,7 @@ public class ReservationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleRestaurantCreateEventAsync(RestaurantCreateEvent event) {
-        reservationCommandService.createTableAvailabilities(event.getRestaurantId());
+        tableAvailabilityCommandService.createTableAvailabilities(event.getRestaurantId());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -52,7 +54,7 @@ public class ReservationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTableCountUpdateEventAsync(TableCountUpdateEvent event) {
-        reservationCommandService.updateTableAvailability(event.getRestaurantId(), event.getCommand().getCapacity());
+        tableAvailabilityCommandService.updateTableAvailability(event.getRestaurantId(), event.getCommand().getCapacity());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)

@@ -109,7 +109,7 @@ class RestaurantValidatorTest {
     @DisplayName("휴뮤 기간이 오늘 이전이 아니면 예외가 발생하지 않는다.")
     void validateClosePeriodNotBeforeToday_withValidInput_notThrowException() {
         // given
-        String startDate = "2024-09-01";
+        String startDate = "2025-09-01";
 
         // when & then
         assertDoesNotThrow(() -> restaurantValidator.validateClosePeriodNotBeforeToday(startDate));

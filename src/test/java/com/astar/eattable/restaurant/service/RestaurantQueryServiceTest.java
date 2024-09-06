@@ -64,7 +64,7 @@ class RestaurantQueryServiceTest {
             businessHoursDocuments.add(new BusinessHoursDocument(day, "09:00", "21:00", "12:00", "13:00", "20:00"));
         }
         GeoJsonPoint location = new GeoJsonPoint(37.123456, 127.123456);
-        restaurantDocument = new RestaurantDocument(1L, "테스트 식당", "맛있는 식당", "이미지 URL", "한식", "02-1234-5678", "서울시 강남구", location, 0.0, 0L, businessHoursDocuments);
+        restaurantDocument = new RestaurantDocument(1L, "테스트 식당", "맛있는 식당", "이미지 URL", "한식", "02-1234-5678", "서울시 강남구", location, 1L, "테스트", 4.5, 100L, businessHoursDocuments);
         menuSectionMapDocument = new MenuSectionMapDocument(1L);
 
         MenuSectionCreateCommand createCommand = new MenuSectionCreateCommand("메인 메뉴");
@@ -83,7 +83,7 @@ class RestaurantQueryServiceTest {
     void createRestaurant_withValidPayload_thenSaveRestaurantDocument() {
         // given
         RestaurantCreateCommand command = RestaurantTestUtils.getRestaurantCreateCommand();
-        RestaurantCreateEventPayload payload = new RestaurantCreateEventPayload(1L, command);
+        RestaurantCreateEventPayload payload = new RestaurantCreateEventPayload(1L, command, 1L, "테스트");
 
         // when
         restaurantQueryService.createRestaurant(payload);

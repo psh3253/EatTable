@@ -2,6 +2,7 @@ package com.astar.eattable.config;
 
 import com.astar.eattable.reservation.service.ReservationCommandService;
 import com.astar.eattable.reservation.service.ReservationQueryService;
+import com.astar.eattable.reservation.service.TableAvailabilityCommandService;
 import com.astar.eattable.restaurant.service.RestaurantCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -24,14 +25,14 @@ public class BatchConfig {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final RestaurantCommandService restaurantCommandService;
-    private final ReservationCommandService reservationCommandService;
+    private final TableAvailabilityCommandService tableAvailabilityCommandService;
     private final ReservationQueryService reservationQueryService;
 
     @Bean
     public Step createAllTableAvailabilitiesStep() {
         return new StepBuilder("createAllTableAvailabilityStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    reservationCommandService.createAllTableAvailabilities();
+                    tableAvailabilityCommandService.createAllTableAvailabilities();
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
