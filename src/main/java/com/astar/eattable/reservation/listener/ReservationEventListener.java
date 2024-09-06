@@ -46,7 +46,7 @@ public class ReservationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleTableCountUpdateEvent(TableCountUpdateEvent event) throws JsonProcessingException {
-        eventService.saveExternalEvent(EventTypes.TABLE_COUNT_UPDATED, objectMapper.writeValueAsString(TableCountUpdateEventPayload.from(event)), event.getUser());
+        eventService.saveExternalEvent(EventTypes.TABLE_COUNT_UPDATED, event.getRestaurantId(), objectMapper.writeValueAsString(TableCountUpdateEventPayload.from(event)), event.getUser());
     }
 
     @Async
@@ -57,12 +57,12 @@ public class ReservationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleReservationCreateEvent(ReservationCreateEvent event) throws JsonProcessingException {
-        eventService.saveExternalEvent(EventTypes.RESERVATION_CREATED, objectMapper.writeValueAsString(ReservationCreateEventPayload.from(event)), event.getUser());
+        eventService.saveExternalEvent(EventTypes.RESERVATION_CREATED, event.getReservationId(), objectMapper.writeValueAsString(ReservationCreateEventPayload.from(event)), event.getUser());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleReservationCancelEvent(ReservationCancelEvent event) throws JsonProcessingException {
-        eventService.saveExternalEvent(EventTypes.RESERVATION_CANCELLED, objectMapper.writeValueAsString(ReservationCancelEventPayload.from(event)), event.getUser());
+        eventService.saveExternalEvent(EventTypes.RESERVATION_CANCELLED, event.getReservationId(), objectMapper.writeValueAsString(ReservationCancelEventPayload.from(event)), event.getUser());
     }
 
     @KafkaListener(topics = "restaurant-events", groupId = "reservation-service")

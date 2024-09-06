@@ -24,6 +24,9 @@ public class ExternalEvent {
     @NotNull
     private String eventType;
 
+    @NotNull
+    private Long keyValue;
+
     @Column(columnDefinition = "TEXT")
     private String payload;
 
@@ -45,16 +48,18 @@ public class ExternalEvent {
     private LocalDateTime publishedAt;
 
     @Builder
-    public ExternalEvent(String eventType, String payload, User user) {
+    public ExternalEvent(String eventType, Long keyValue, String payload, User user) {
         this.eventType = eventType;
+        this.keyValue = keyValue;
         this.payload = payload;
         this.user = user;
         this.createdAt = LocalDateTime.now();
     }
 
-    public static ExternalEvent from(String eventType, String payload, User user) {
+    public static ExternalEvent from(String eventType, Long keyValue, String payload, User user) {
         return ExternalEvent.builder()
                 .eventType(eventType)
+                .keyValue(keyValue)
                 .payload(payload)
                 .user(user)
                 .build();
