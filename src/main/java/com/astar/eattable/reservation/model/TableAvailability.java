@@ -1,6 +1,7 @@
 package com.astar.eattable.reservation.model;
 
 import com.astar.eattable.restaurant.model.Restaurant;
+import com.astar.eattable.restaurant.model.RestaurantTable;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

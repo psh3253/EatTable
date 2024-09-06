@@ -1,5 +1,6 @@
 package com.astar.eattable.restaurant.controller;
 
+import com.astar.eattable.reservation.command.TableCountUpdateCommand;
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.dto.ClosedPeriodListDTO;
 import com.astar.eattable.restaurant.dto.MenuSectionDTO;
@@ -105,5 +106,11 @@ public class RestaurantController {
     @GetMapping("/{restaurantId}/closed-periods")
     public ResponseEntity<List<ClosedPeriodListDTO>> getClosedPeriods(@PathVariable Long restaurantId) {
         return ResponseEntity.ok(restaurantQueryService.getClosedPeriods(restaurantId));
+    }
+
+    @PutMapping("/table-count")
+    public ResponseEntity<Void> updateTableCount(@RequestBody TableCountUpdateCommand command, @CurrentUser User currentUser) {
+        restaurantCommandService.updateTableCount(command, currentUser);
+        return ResponseEntity.ok().build();
     }
 }

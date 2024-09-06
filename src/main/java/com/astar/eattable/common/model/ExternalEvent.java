@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @NoArgsConstructor
@@ -28,8 +30,10 @@ public class ExternalEvent {
     @NotNull
     private final boolean published = false;
 
-    @NotNull
-    private boolean consumed = false;
+    @ElementCollection
+    @MapKeyColumn(name = "domain")
+    @Column(name = "consumed")
+    private Map<String, Boolean> domainConsumed = new HashMap<>();
 
     @NotNull
     private LocalDateTime createdAt;
@@ -39,8 +43,6 @@ public class ExternalEvent {
     private User user;
 
     private LocalDateTime publishedAt;
-
-    private LocalDateTime consumedAt;
 
     @Builder
     public ExternalEvent(String eventType, String payload, User user) {
@@ -58,8 +60,11 @@ public class ExternalEvent {
                 .build();
     }
 
-    public void consume() {
-        this.consumed = true;
-        this.consumedAt = LocalDateTime.now();
+    public void consumeEvent(String domain) {
+        domainConsumed.put(domain, true);
+    }
+
+    public boolean isConsumed(String domain) {
+        return domainConsumed.getOrDefault(domain, false);
     }
 }

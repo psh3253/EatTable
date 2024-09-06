@@ -1,6 +1,5 @@
-package com.astar.eattable.reservation.model;
+package com.astar.eattable.restaurant.model;
 
-import com.astar.eattable.restaurant.model.Restaurant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;

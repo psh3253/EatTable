@@ -1,6 +1,11 @@
 package com.astar.eattable.restaurant.service;
 
 import com.astar.eattable.common.dto.Day;
+import com.astar.eattable.reservation.command.TableCountUpdateCommand;
+import com.astar.eattable.restaurant.event.TableCountUpdateEvent;
+import com.astar.eattable.reservation.exception.RestaurantTableNotFoundException;
+import com.astar.eattable.restaurant.model.RestaurantTable;
+import com.astar.eattable.restaurant.repository.RestaurantTableRepository;
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.exception.*;
@@ -23,6 +28,7 @@ public class RestaurantCommandService {
     private final MenuSectionRepository menuSectionRepository;
     private final MenuRepository menuRepository;
     private final ClosedPeriodRepository closedPeriodRepository;
+    private final RestaurantTableRepository restaurantTableRepository;
     private final RestaurantValidator restaurantValidator;
     private final ApplicationEventPublisher publisher;
 
@@ -145,6 +151,15 @@ public class RestaurantCommandService {
         closedPeriodRepository.delete(closedPeriod);
 
         publisher.publishEvent(new ClosedPeriodDeleteEvent(closedPeriod.getRestaurant().getId(), closedPeriodId, currentUser));
+    }
+
+    @Transactional
+    public void updateTableCount(TableCountUpdateCommand command, User currentUser) {
+        RestaurantTable restaurantTable = restaurantTableRepository.findByRestaurantIdAndCapacity(command.getRestaurantId(), command.getCapacity()).orElseThrow(() -> new RestaurantTableNotFoundException(command.getRestaurantId(), command.getCapacity()));
+        restaurantValidator.validateRestaurantOwner(restaurantTable.getRestaurant(), currentUser.getId());
+        restaurantTable.updateCount(command.getCount());
+
+        publisher.publishEvent(new TableCountUpdateEvent(command.getRestaurantId(), command, currentUser));
     }
 
     private void validateRestaurantAlreadyExists(String name, String address) {

@@ -1,6 +1,6 @@
-package com.astar.eattable.reservation.repository;
+package com.astar.eattable.restaurant.repository;
 
-import com.astar.eattable.reservation.model.RestaurantTable;
+import com.astar.eattable.restaurant.model.RestaurantTable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

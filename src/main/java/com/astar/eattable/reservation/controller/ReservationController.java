@@ -33,12 +33,6 @@ public class ReservationController {
         return ResponseEntity.ok(reservationQueryService.getTableAvailability(restaurantId, date, capacity));
     }
 
-    @PutMapping("/table-count")
-    public ResponseEntity<Void> updateTableCount(@RequestBody TableCountUpdateCommand command, @CurrentUser User currentUser) {
-        reservationCommandService.updateTableCount(command, currentUser);
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping()
     public ResponseEntity<Void> createReservation(@RequestBody ReservationCreateCommand command, @CurrentUser User currentUser) {
         reservationCommandService.createReservation(command, currentUser);

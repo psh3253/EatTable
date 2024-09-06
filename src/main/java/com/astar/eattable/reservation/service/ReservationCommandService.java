@@ -4,18 +4,15 @@ import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.common.lock.DistributedLock;
 import com.astar.eattable.common.service.CommonService;
 import com.astar.eattable.reservation.command.ReservationCreateCommand;
-import com.astar.eattable.reservation.command.TableCountUpdateCommand;
 import com.astar.eattable.reservation.event.ReservationCancelEvent;
 import com.astar.eattable.reservation.event.ReservationCreateEvent;
-import com.astar.eattable.reservation.event.TableCountUpdateEvent;
 import com.astar.eattable.reservation.exception.ReservationNotFoundException;
-import com.astar.eattable.reservation.exception.RestaurantTableNotFoundException;
 import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
 import com.astar.eattable.reservation.model.Reservation;
-import com.astar.eattable.reservation.model.RestaurantTable;
+import com.astar.eattable.restaurant.model.RestaurantTable;
 import com.astar.eattable.reservation.model.TableAvailability;
 import com.astar.eattable.reservation.repository.ReservationRepository;
-import com.astar.eattable.reservation.repository.RestaurantTableRepository;
+import com.astar.eattable.restaurant.repository.RestaurantTableRepository;
 import com.astar.eattable.reservation.repository.TableAvailabilityRepository;
 import com.astar.eattable.reservation.validator.ReservationValidator;
 import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
@@ -24,11 +21,9 @@ import com.astar.eattable.restaurant.model.Restaurant;
 import com.astar.eattable.restaurant.repository.BusinessHoursRepository;
 import com.astar.eattable.restaurant.repository.ClosedPeriodRepository;
 import com.astar.eattable.restaurant.repository.RestaurantRepository;
-import com.astar.eattable.restaurant.validator.RestaurantValidator;
 import com.astar.eattable.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -54,8 +49,6 @@ public class ReservationCommandService {
     private final CommonService commonService;
     private final ReservationValidator reservationValidator;
     private final ApplicationEventPublisher publisher;
-    private final RestaurantValidator restaurantValidator;
-    private final RedissonClient redissonClient;
 
     @Value("${max.reservation.period.days}")
     private int MAX_RESERVATION_PERIOD_DAYS;
@@ -137,15 +130,6 @@ public class ReservationCommandService {
         for (Restaurant restaurant : restaurants) {
             createTableAvailabilities(restaurant.getId());
         }
-    }
-
-    @Transactional
-    public void updateTableCount(TableCountUpdateCommand command, User currentUser) {
-        RestaurantTable restaurantTable = restaurantTableRepository.findByRestaurantIdAndCapacity(command.getRestaurantId(), command.getCapacity()).orElseThrow(() -> new RestaurantTableNotFoundException(command.getRestaurantId(), command.getCapacity()));
-        restaurantValidator.validateRestaurantOwner(restaurantTable.getRestaurant(), currentUser.getId());
-        restaurantTable.updateCount(command.getCount());
-
-        publisher.publishEvent(new TableCountUpdateEvent(command.getRestaurantId(), command, currentUser));
     }
 
     @Transactional

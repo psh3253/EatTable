@@ -16,4 +16,14 @@ public class EventTypes {
     public static final String TABLE_COUNT_UPDATED = "TableCountUpdated";
     public static final String RESERVATION_CREATED = "ReservationCreated";
     public static final String RESERVATION_CANCELLED = "ReservationCancelled";
+
+    public static String getTopic(String eventType) {
+        return switch (eventType) {
+            case RESTAURANT_CREATED, RESTAURANT_DELETED, RESTAURANT_UPDATED, BUSINESS_HOURS_UPDATED,
+                 MENU_SECTION_CREATED, MENU_SECTION_DELETED, MENU_SECTION_UPDATED, MENU_CREATED, MENU_DELETED,
+                 MENU_UPDATED, CLOSED_PERIOD_CREATED, CLOSED_PERIOD_DELETED, TABLE_COUNT_UPDATED -> "restaurant-events";
+            case RESERVATION_CREATED, RESERVATION_CANCELLED -> "reservation-events";
+            default -> throw new IllegalArgumentException("알 수 없는 이벤트 타입입니다.");
+        };
+    }
 }

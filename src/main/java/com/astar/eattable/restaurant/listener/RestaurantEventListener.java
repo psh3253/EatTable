@@ -88,7 +88,7 @@ public class RestaurantEventListener {
     @KafkaListener(topics = "restaurant-events", groupId = "restaurant-service")
     public void listenRestaurantEvents(@Payload String message, Acknowledgment ack) throws JsonProcessingException {
         ExternalEvent externalRestaurantEvent = objectMapper.readValue(message, ExternalEvent.class);
-        eventService.checkExternalEvent(externalRestaurantEvent.getEventId(), ack);
+        eventService.checkExternalEvent(externalRestaurantEvent.getEventId(), "restaurant", ack);
         handleRestaurantEvent(externalRestaurantEvent);
         ack.acknowledge();
     }
@@ -99,8 +99,6 @@ public class RestaurantEventListener {
                 RestaurantCreateEventPayload restaurantCreateEventPayload = objectMapper.readValue(message.getPayload(), RestaurantCreateEventPayload.class);
                 restaurantQueryService.createRestaurant(restaurantCreateEventPayload);
                 restaurantQueryService.initMenuSections(restaurantCreateEventPayload.getRestaurantId());
-                reservationQueryService.initMonthlyAvailability(restaurantCreateEventPayload.getRestaurantId());
-                reservationQueryService.initTableAvailability(restaurantCreateEventPayload.getRestaurantId());
                 break;
             case EventTypes.RESTAURANT_DELETED:
                 restaurantQueryService.deleteRestaurant(objectMapper.readValue(message.getPayload(), RestaurantDeleteEventPayload.class));
@@ -130,14 +128,10 @@ public class RestaurantEventListener {
                 restaurantQueryService.updateMenu(objectMapper.readValue(message.getPayload(), MenuUpdateEventPayload.class));
                 break;
             case EventTypes.CLOSED_PERIOD_CREATED:
-                ClosedPeriodCreateEventPayload closedPeriodCreateEventPayload = objectMapper.readValue(message.getPayload(), ClosedPeriodCreateEventPayload.class);
-                restaurantQueryService.createClosedPeriod(closedPeriodCreateEventPayload);
-                reservationQueryService.updateMonthlyAvailability(closedPeriodCreateEventPayload.getRestaurantId());
+                restaurantQueryService.createClosedPeriod(objectMapper.readValue(message.getPayload(), ClosedPeriodCreateEventPayload.class));
                 break;
             case EventTypes.CLOSED_PERIOD_DELETED:
-                ClosedPeriodDeleteEventPayload closedPeriodDeleteEventPayload = objectMapper.readValue(message.getPayload(), ClosedPeriodDeleteEventPayload.class);
-                restaurantQueryService.deleteClosedPeriod(closedPeriodDeleteEventPayload);
-                reservationQueryService.updateMonthlyAvailability(closedPeriodDeleteEventPayload.getRestaurantId());
+                restaurantQueryService.deleteClosedPeriod(objectMapper.readValue(message.getPayload(), ClosedPeriodDeleteEventPayload.class));
                 break;
         }
     }
