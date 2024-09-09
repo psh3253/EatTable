@@ -1,10 +1,7 @@
 package com.astar.eattable.reservation.service;
 
 import com.astar.eattable.common.dto.Day;
-import com.astar.eattable.common.lock.DistributedLock;
 import com.astar.eattable.common.service.CommonService;
-import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
-import com.astar.eattable.reservation.model.Reservation;
 import com.astar.eattable.reservation.model.TableAvailability;
 import com.astar.eattable.reservation.repository.ReservationRepository;
 import com.astar.eattable.reservation.repository.TableAvailabilityRepository;

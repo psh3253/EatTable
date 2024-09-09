@@ -1,6 +1,5 @@
 package com.astar.eattable.common.service;
 
-import com.astar.eattable.common.dto.EventTypes;
 import com.astar.eattable.common.exception.EventAlreadyPublishedException;
 import com.astar.eattable.common.exception.EventNotFoundException;
 import com.astar.eattable.common.lock.DistributedLock;
@@ -28,7 +27,7 @@ public class EventService {
     @DistributedLock(key = "#eventId")
     public void checkExternalEvent(UUID eventId, String domain, Acknowledgment ack) {
         ExternalEvent externalEvent = externalEventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
-        if(externalEvent.isConsumed(domain)) {
+        if (externalEvent.isConsumed(domain)) {
             ack.acknowledge();
             throw new EventAlreadyPublishedException(eventId);
         }

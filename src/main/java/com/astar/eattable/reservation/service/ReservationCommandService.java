@@ -6,26 +6,20 @@ import com.astar.eattable.reservation.event.ReservationCreateEvent;
 import com.astar.eattable.reservation.exception.ReservationNotFoundException;
 import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundException;
 import com.astar.eattable.reservation.model.Reservation;
-import com.astar.eattable.restaurant.model.RestaurantTable;
 import com.astar.eattable.reservation.model.TableAvailability;
 import com.astar.eattable.reservation.repository.ReservationRepository;
-import com.astar.eattable.restaurant.repository.RestaurantTableRepository;
 import com.astar.eattable.reservation.repository.TableAvailabilityRepository;
 import com.astar.eattable.reservation.validator.ReservationValidator;
-import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
-import com.astar.eattable.restaurant.model.Restaurant;
 import com.astar.eattable.restaurant.repository.RestaurantRepository;
+import com.astar.eattable.restaurant.repository.RestaurantTableRepository;
 import com.astar.eattable.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,18 +32,6 @@ public class ReservationCommandService {
     private final ReservationValidator reservationValidator;
     private final ReservationLockService reservationLockService;
     private final ApplicationEventPublisher publisher;
-
-    @Transactional
-    public void initRestaurantTable(Long restaurantId) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
-        int[] capacities = {1, 2, 3, 4};
-        List<RestaurantTable> restaurantTables = new ArrayList<>();
-        for (int capacity : capacities) {
-            RestaurantTable restaurantTable = RestaurantTable.builder().capacity(capacity).count(0).restaurant(restaurant).build();
-            restaurantTables.add(restaurantTable);
-        }
-        restaurantTableRepository.saveAll(restaurantTables);
-    }
 
     @DistributedLock(key = "#command.restaurantId + ':' + #command.date + ':' + #command.time + ':' + #command.capacity")
     public void createReservation(ReservationCreateCommand command, User currentUser) {

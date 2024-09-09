@@ -10,6 +10,7 @@ import java.time.LocalDate;
 
 @NoArgsConstructor
 @Getter
+@Table(name = "closed_period")
 @Entity
 public class ClosedPeriod {
     @Id

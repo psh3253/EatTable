@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Getter
+@Table(name = "reservation")
 @Entity
 public class Reservation {
     @Id

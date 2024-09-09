@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Getter
+@Table(name = "restaurant_table")
 @Entity
 public class RestaurantTable {
     @Id
@@ -33,5 +34,9 @@ public class RestaurantTable {
 
     public void updateCount(Integer count) {
         this.count = count;
+    }
+
+    public void setIdForTest(Long id) {
+        this.id = id;
     }
 }

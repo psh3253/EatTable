@@ -1,6 +1,5 @@
 package com.astar.eattable.config;
 
-import com.astar.eattable.reservation.service.ReservationCommandService;
 import com.astar.eattable.reservation.service.ReservationQueryService;
 import com.astar.eattable.reservation.service.TableAvailabilityCommandService;
 import com.astar.eattable.restaurant.service.RestaurantCommandService;

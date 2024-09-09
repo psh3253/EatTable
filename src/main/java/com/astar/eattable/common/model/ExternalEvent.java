@@ -15,6 +15,7 @@ import java.util.UUID;
 
 @NoArgsConstructor
 @Getter
+@Table(name = "external_event")
 @Entity
 public class ExternalEvent {
     @Id
@@ -36,7 +37,7 @@ public class ExternalEvent {
     @ElementCollection
     @MapKeyColumn(name = "domain")
     @Column(name = "consumed")
-    private Map<String, Boolean> domainConsumed = new HashMap<>();
+    private final Map<String, Boolean> domainConsumed = new HashMap<>();
 
     @NotNull
     private LocalDateTime createdAt;

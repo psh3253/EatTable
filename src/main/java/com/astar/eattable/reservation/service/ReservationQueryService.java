@@ -13,7 +13,6 @@ import com.astar.eattable.reservation.exception.TableAvailabilityNotFoundExcepti
 import com.astar.eattable.reservation.exception.TimeAvailabilityNotFoundException;
 import com.astar.eattable.reservation.payload.ReservationCancelEventPayload;
 import com.astar.eattable.reservation.payload.ReservationCreateEventPayload;
-import com.astar.eattable.restaurant.payload.TableCountUpdateEventPayload;
 import com.astar.eattable.reservation.repository.MonthlyAvailabilityMongoRepository;
 import com.astar.eattable.reservation.repository.ReservationMongoRepository;
 import com.astar.eattable.reservation.repository.TableAvailabilityMongoRepository;
@@ -21,6 +20,7 @@ import com.astar.eattable.reservation.validator.ReservationValidator;
 import com.astar.eattable.restaurant.document.BusinessHoursDocument;
 import com.astar.eattable.restaurant.document.RestaurantDocument;
 import com.astar.eattable.restaurant.exception.RestaurantNotFoundException;
+import com.astar.eattable.restaurant.payload.TableCountUpdateEventPayload;
 import com.astar.eattable.restaurant.repository.ClosedPeriodMongoRepository;
 import com.astar.eattable.restaurant.repository.RestaurantMongoRepository;
 import com.astar.eattable.restaurant.validator.RestaurantValidator;

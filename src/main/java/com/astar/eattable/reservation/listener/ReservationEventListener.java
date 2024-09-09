@@ -7,7 +7,6 @@ import com.astar.eattable.reservation.event.ReservationCancelEvent;
 import com.astar.eattable.reservation.event.ReservationCreateEvent;
 import com.astar.eattable.reservation.payload.ReservationCancelEventPayload;
 import com.astar.eattable.reservation.payload.ReservationCreateEventPayload;
-import com.astar.eattable.reservation.service.ReservationCommandService;
 import com.astar.eattable.reservation.service.ReservationQueryService;
 import com.astar.eattable.reservation.service.TableAvailabilityCommandService;
 import com.astar.eattable.restaurant.event.RestaurantCreateEvent;
@@ -29,16 +28,10 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 @Component
 public class ReservationEventListener {
-    private final ReservationCommandService reservationCommandService;
     private final TableAvailabilityCommandService tableAvailabilityCommandService;
     private final ReservationQueryService reservationQueryService;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
-
-    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
-    public void handleRestaurantCreateEvent(RestaurantCreateEvent event) {
-        reservationCommandService.initRestaurantTable(event.getRestaurantId());
-    }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

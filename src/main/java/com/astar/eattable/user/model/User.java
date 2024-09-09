@@ -13,8 +13,9 @@ import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Getter
-@SQLDelete(sql = "UPDATE user SET deleted = true, deleted_at = now() WHERE id = ?")
+@SQLDelete(sql = "UPDATE users SET deleted = true, deleted_at = now() WHERE id = ?")
 @SQLRestriction("deleted = false")
+@Table(name = "users")
 @Entity
 public class User extends BaseTimeEntity {
     @Id

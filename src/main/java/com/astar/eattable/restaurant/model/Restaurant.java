@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @SQLDelete(sql = "UPDATE restaurant SET deleted = true, deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted = false")
+@Table(name = "restaurant")
 @Entity
 public class Restaurant extends BaseTimeEntity {
     @Id

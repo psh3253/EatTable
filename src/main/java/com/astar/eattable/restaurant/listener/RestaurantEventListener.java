@@ -3,9 +3,9 @@ package com.astar.eattable.restaurant.listener;
 import com.astar.eattable.common.dto.EventTypes;
 import com.astar.eattable.common.model.ExternalEvent;
 import com.astar.eattable.common.service.EventService;
-import com.astar.eattable.reservation.service.ReservationQueryService;
 import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.payload.*;
+import com.astar.eattable.restaurant.service.RestaurantCommandService;
 import com.astar.eattable.restaurant.service.RestaurantQueryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,12 +21,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class RestaurantEventListener {
     private final RestaurantQueryService restaurantQueryService;
-    private final ReservationQueryService reservationQueryService;
+    private final RestaurantCommandService restaurantCommandService;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleRestaurantCreateEvent(RestaurantCreateEvent event) throws JsonProcessingException {
+        restaurantCommandService.initRestaurantTable(event.getRestaurantId());
         eventService.saveExternalEvent(EventTypes.RESTAURANT_CREATED, event.getRestaurantId(), objectMapper.writeValueAsString(RestaurantCreateEventPayload.from(event)), event.getUser());
     }
 

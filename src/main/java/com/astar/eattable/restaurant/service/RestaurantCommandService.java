@@ -2,10 +2,7 @@ package com.astar.eattable.restaurant.service;
 
 import com.astar.eattable.common.dto.Day;
 import com.astar.eattable.reservation.command.TableCountUpdateCommand;
-import com.astar.eattable.restaurant.event.TableCountUpdateEvent;
 import com.astar.eattable.reservation.exception.RestaurantTableNotFoundException;
-import com.astar.eattable.restaurant.model.RestaurantTable;
-import com.astar.eattable.restaurant.repository.RestaurantTableRepository;
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.event.*;
 import com.astar.eattable.restaurant.exception.*;
@@ -18,6 +15,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -151,6 +149,18 @@ public class RestaurantCommandService {
         closedPeriodRepository.delete(closedPeriod);
 
         publisher.publishEvent(new ClosedPeriodDeleteEvent(closedPeriod.getRestaurant().getId(), closedPeriodId, currentUser));
+    }
+
+    @Transactional
+    public void initRestaurantTable(Long restaurantId) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
+        int[] capacities = {1, 2, 3, 4};
+        List<RestaurantTable> restaurantTables = new ArrayList<>();
+        for (int capacity : capacities) {
+            RestaurantTable restaurantTable = RestaurantTable.builder().capacity(capacity).count(0).restaurant(restaurant).build();
+            restaurantTables.add(restaurantTable);
+        }
+        restaurantTableRepository.saveAll(restaurantTables);
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 package com.astar.eattable.restaurant.service;
 
 import com.astar.eattable.common.dto.Day;
+import com.astar.eattable.reservation.command.TableCountUpdateCommand;
 import com.astar.eattable.restaurant.RestaurantTestUtils;
 import com.astar.eattable.restaurant.command.*;
 import com.astar.eattable.restaurant.event.*;
@@ -52,6 +53,9 @@ class RestaurantCommandServiceTest {
     private MenuRepository menuRepository;
 
     @Mock
+    private RestaurantTableRepository restaurantTableRepository;
+
+    @Mock
     private ClosedPeriodRepository closedPeriodRepository;
 
     @Mock
@@ -66,6 +70,7 @@ class RestaurantCommandServiceTest {
     private List<BusinessHours> businessHoursList;
     private MenuSection menuSection;
     private Menu menu;
+    private RestaurantTable restaurantTable;
     private ClosedPeriod closedPeriod;
 
     @BeforeEach
@@ -123,6 +128,12 @@ class RestaurantCommandServiceTest {
                 .restaurant(restaurant)
                 .build();
         menu.setIdForTest(1L);
+        restaurantTable = RestaurantTable.builder()
+                .capacity(2)
+                .count(5)
+                .restaurant(restaurant)
+                .build();
+        restaurantTable.setIdForTest(1L);
         closedPeriod = ClosedPeriod.builder()
                 .startDate(LocalDate.of(2024, 9, 1))
                 .endDate(LocalDate.of(2024, 9, 7))
@@ -655,6 +666,64 @@ class RestaurantCommandServiceTest {
         assertThrows(MenuNotFoundException.class, () -> restaurantCommandService.updateMenu(menuId, command, user));
 
         verify(publisher, times(0)).publishEvent(any(MenuUpdateEvent.class));
+    }
+
+    @Test
+    @DisplayName("유효한 입력으로 테이블 정보를 초기화하면 테이블이 초기화된다.")
+    void initRestaurantTable_withValidInput_initializesRestaurantTable() {
+        // given
+        Long restaurantId = 1L;
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.of(restaurant));
+
+        // when
+        restaurantCommandService.initRestaurantTable(restaurantId);
+
+        // then
+        verify(restaurantTableRepository, times(1)).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 식당에 테이블 정보를 초기화하려고 하면 RestaurantNotFoundException 예외가 발생한다.")
+    void initRestaurantTable_withNotExistingRestaurant_throwsRestaurantNotFoundException() {
+        // given
+        Long restaurantId = 1L;
+        given(restaurantRepository.findById(restaurantId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThrows(RestaurantNotFoundException.class, () -> restaurantCommandService.initRestaurantTable(restaurantId));
+
+        verify(restaurantTableRepository, times(0)).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("유효한 입력으로 테이블의 수를 수정하면 테이블의 수가 수정된다.")
+    void updateTableCount_withValidInput_updatesTableCount() {
+        // given
+        Long restaurantId = 1L;
+        TableCountUpdateCommand command = new TableCountUpdateCommand(1L, 2, 10);
+        given(restaurantTableRepository.findByRestaurantIdAndCapacity(restaurantId, command.getCapacity())).willReturn(Optional.of(restaurantTable));
+
+        // when
+        restaurantCommandService.updateTableCount(command, user);
+
+        // then
+        assertThat(restaurantTable.getCount()).isEqualTo(10);
+
+        verify(publisher, times(1)).publishEvent(any(TableCountUpdateEvent.class));
+    }
+
+    @Test
+    @DisplayName("식당 소유자가 아닌 사용자가 테이블의 수를 수정하려고 하면 UnauthorizedRestaurantAccessException 예외가 발생한다.")
+    void updateTableCount_withNotOwnerUser_throwsUnauthorizedRestaurantAccessException() {
+        // given
+        TableCountUpdateCommand command = new TableCountUpdateCommand(1L, 2, 10);
+        given(restaurantTableRepository.findByRestaurantIdAndCapacity(1L, command.getCapacity())).willReturn(Optional.of(restaurantTable));
+        willThrow(new UnauthorizedRestaurantAccessException(restaurantTable.getRestaurant().getId(), notOwnerUser.getId())).given(restaurantValidator).validateRestaurantOwner(restaurantTable.getRestaurant(), notOwnerUser.getId());
+
+        // when & then
+        assertThrows(UnauthorizedRestaurantAccessException.class, () -> restaurantCommandService.updateTableCount(command, notOwnerUser));
+
+        verify(publisher, times(0)).publishEvent(any(TableCountUpdateEvent.class));
     }
 
     @Test

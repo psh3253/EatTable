@@ -1,7 +1,6 @@
 package com.astar.eattable.reservation.controller;
 
 import com.astar.eattable.reservation.command.ReservationCreateCommand;
-import com.astar.eattable.reservation.command.TableCountUpdateCommand;
 import com.astar.eattable.reservation.dto.MonthlyAvailabilityDTO;
 import com.astar.eattable.reservation.dto.ReservationDetailsDTO;
 import com.astar.eattable.reservation.dto.ReservationListDTO;
